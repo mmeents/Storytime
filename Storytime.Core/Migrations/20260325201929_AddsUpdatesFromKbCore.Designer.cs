@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Storytime.Core;
 
@@ -11,9 +12,11 @@ using Storytime.Core;
 namespace Storytime.Core.Migrations
 {
     [DbContext(typeof(StorytimeDbContext))]
-    partial class StorytimeDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260325201929_AddsUpdatesFromKbCore")]
+    partial class AddsUpdatesFromKbCore
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

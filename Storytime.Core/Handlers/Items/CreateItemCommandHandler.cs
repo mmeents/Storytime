@@ -6,6 +6,7 @@ namespace Storytime.Core.Handlers.Items {
 
   public record CreateItemCommand(
     string Name,
+    int ItemTypeId,
     string Description,
     string Data
   ) : IRequest<ItemDto>;
@@ -18,10 +19,16 @@ namespace Storytime.Core.Handlers.Items {
     }
 
     public async Task<ItemDto> Handle(CreateItemCommand request, CancellationToken cancellationToken) {
-            
+
+      var itemType = await _context.ItemTypes.FindAsync(new object[] { request.ItemTypeId }, cancellationToken);
+
+      if (itemType == null) {
+        throw new Exception($"ItemType with id {request.ItemTypeId} not found");
+      }
 
       var item = new Item {
         Name = request.Name,
+        ItemTypeId = itemType.Id,
         Description = request.Description,
         Data = request.Data,
         IsActive = true

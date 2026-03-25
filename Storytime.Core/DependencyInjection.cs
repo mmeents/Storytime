@@ -1,7 +1,8 @@
 ﻿using KB.Core;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.EntityFrameworkCore;
+using Storytime.Core.Service;
 
 namespace Storytime.Core {
   public static class DependencyInjection {
@@ -12,6 +13,7 @@ namespace Storytime.Core {
       services.AddMediatR(cfg =>
         cfg.RegisterServicesFromAssembly(typeof(DependencyInjection).Assembly));
 
+      services.AddScoped<IAppDataModuleService, AppDataModuleService>();
 
       return services;
     }

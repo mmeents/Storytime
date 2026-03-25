@@ -29,9 +29,28 @@ namespace Storytime.Core {
           new ItemRelationType { Id = 3, Relation = "NextBeat", Description = "Beat → next Beat (optional explicit override)" },
           new ItemRelationType { Id = 4, Relation = "UsesRule", Description = "Any item → global rule from the project bible" },
           new ItemRelationType { Id = 5, Relation = "FeaturesCharacter", Description = "Scene/Beat features a character" },
-          new ItemRelationType { Id = 6, Relation = "TakesPlaceAt", Description = "Scene/Beat location reference" }
+          new ItemRelationType { Id = 6, Relation = "TakesPlaceAt", Description = "Scene/Beat location reference" },
+          new ItemRelationType { Id = 7, Relation = "UsesTone", Description = "Any item → tone reference" }
       );
       
     }
+  }
+
+  public enum StItemType {
+    Project = 1,
+    Story = 2,
+    Scene = 3,
+    Beat = 4,
+    Character = 5,
+    Location = 6,
+    Rule = 7
+  }
+   public enum StRelationType {
+    Contains = 1,
+    HasBeat = 2,
+    NextBeat = 3,
+    UsesRule = 4,
+    FeaturesCharacter = 5,
+    TakesPlaceAt = 6
   }
 }
