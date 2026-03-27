@@ -3,6 +3,8 @@ using KB.Core.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using System.Threading;
+using MediatR;
+using Storytime.Core.Handlers.Items;
 
 
 namespace Storytime.Core.Service {
@@ -14,7 +16,7 @@ namespace Storytime.Core.Service {
     Task<List<ItemRelationTypeDto>> GetAllRelationTypes();
     Task<ItemRelationDto?> UpdateItemRelation(ItemRelationDto relationDto);
     Task<ItemRelationDto?> CreateItemRelation(ItemRelationDto relationDto);
-
+    Task<bool> DeleteItem(int itemId);
     Task<ItemDto?> UpdateItem(ItemDto itemDto);
     Task<ItemDto?> CreateItem(ItemDto itemDto);
     Task<ItemRelationDto?> CreateRelation(int itemId, int? relatedItemId, int relationTypeId);
@@ -121,7 +123,12 @@ namespace Storytime.Core.Service {
       await context.SaveChangesAsync();
       return relation.ToDto();
     }
-
+    public async Task<bool> DeleteItem(int itemId) {
+      using var scope = _scopeFactory.CreateScope();
+      var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();      
+      var command = new DeleteItemCommand(itemId);
+      return await mediator.Send(command);
+    }
     public async Task<ItemDto?> UpdateItem(ItemDto itemDto) {
       var context = GetDbContext();
       var item = await context.Items.FindAsync(itemDto.Id);

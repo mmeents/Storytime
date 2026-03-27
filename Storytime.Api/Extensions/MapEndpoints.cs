@@ -3,6 +3,7 @@ using Storytime.Core.Handlers.Items;
 using Storytime.Core.Handlers.ItemTypes;
 using Storytime.Core.Handlers.ItemRelations;
 using Storytime.Core.Handlers.ItemRelationTypes;
+using Storytime.Core.Handlers.AsGraph;
 
 using MediatR;
 
@@ -16,7 +17,7 @@ namespace Storytime.Api.Extensions {
 
       group.MapPost("/", async (CreateItemCommand command, IMediator mediator) => {
         var result = await mediator.Send(command);
-        return Results.Created($"/api/item/{result.Id}", result);
+        return Results.Created($"/api/item/{result?.Id??0}", result);
       }).WithName("CreateItem").WithDescription("Creates a new item.");
 
       group.MapGet("/{Id}-{IncludeRelations}", async (int Id, bool? IncludeRelations, IMediator mediator) => {
@@ -24,6 +25,12 @@ namespace Storytime.Api.Extensions {
         var result = await mediator.Send(query);
         return Results.Ok(result);
       }).WithName("GetItems").WithDescription("Retrieves a list of items.");
+
+      group.MapGet("/projects", async (IMediator mediator) => {
+        var query = new GetProjectItemsQuery();
+        var result = await mediator.Send(query);
+        return Results.Ok(result);
+      }).WithName("GetProjects").WithDescription("Retrieves a list of projects.");
 
       group.MapPut("/{Id}", async (int Id, UpdateItemCommand command, IMediator mediator) => {
         if (Id != command.Id) {
@@ -38,6 +45,11 @@ namespace Storytime.Api.Extensions {
         await mediator.Send(command);
         return Results.NoContent();
       }).WithName("DeleteItem").WithDescription("Deletes an item by ID.");
+
+      group.MapGet("/", async ([AsParameters] GetSubgraphQuery query, IMediator mediator) => {
+        var result = await mediator.Send(query);
+        return Results.Ok(result);
+      }).WithName("GetSubgraph").WithDescription("Gets the item and related out to depth levels deep.");
 
       return app;
     }

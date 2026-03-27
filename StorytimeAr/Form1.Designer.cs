@@ -38,9 +38,12 @@
       miAddRefCharacter = new ToolStripMenuItem();
       miAddLocation = new ToolStripMenuItem();
       miAddRule = new ToolStripMenuItem();
+      toolStripSeparator2 = new ToolStripSeparator();
+      miDeleteItem = new ToolStripMenuItem();
       tabControl1 = new TabControl();
       tpBrowse = new TabPage();
       tpItems = new TabPage();
+      lbItemId = new Label();
       btnAbortItem = new Button();
       btnUpdateItem = new Button();
       label3 = new Label();
@@ -52,6 +55,7 @@
       edItemType = new ComboBox();
       edItemName = new TextBox();
       tpRelations = new TabPage();
+      lbRelationId = new Label();
       btnCancelRelation = new Button();
       btnUpdateRelation = new Button();
       lbRelItemName = new Label();
@@ -116,9 +120,9 @@
       // 
       // cmsTreeview
       // 
-      cmsTreeview.Items.AddRange(new ToolStripItem[] { reloadTreeToolStripMenuItem, toolStripSeparator1, miAddProject, miAddStory, miAddScene, miAddBeat, miAddCharacter, miAddRefCharacter, miAddLocation, miAddRule });
+      cmsTreeview.Items.AddRange(new ToolStripItem[] { reloadTreeToolStripMenuItem, toolStripSeparator1, miAddProject, miAddStory, miAddScene, miAddBeat, miAddCharacter, miAddRefCharacter, miAddLocation, miAddRule, toolStripSeparator2, miDeleteItem });
       cmsTreeview.Name = "cmsTreeview";
-      cmsTreeview.Size = new Size(195, 208);
+      cmsTreeview.Size = new Size(195, 258);
       cmsTreeview.Opening += cmsTreeview_Opening;
       // 
       // reloadTreeToolStripMenuItem
@@ -189,6 +193,18 @@
       miAddRule.Text = "Add Rule";
       miAddRule.Click += miAddRule_Click;
       // 
+      // toolStripSeparator2
+      // 
+      toolStripSeparator2.Name = "toolStripSeparator2";
+      toolStripSeparator2.Size = new Size(191, 6);
+      // 
+      // miDeleteItem
+      // 
+      miDeleteItem.Name = "miDeleteItem";
+      miDeleteItem.Size = new Size(194, 22);
+      miDeleteItem.Text = "Delete Item";
+      miDeleteItem.Click += miDeleteItem_Click;
+      // 
       // tabControl1
       // 
       tabControl1.Controls.Add(tpBrowse);
@@ -213,6 +229,7 @@
       // 
       // tpItems
       // 
+      tpItems.Controls.Add(lbItemId);
       tpItems.Controls.Add(btnAbortItem);
       tpItems.Controls.Add(btnUpdateItem);
       tpItems.Controls.Add(label3);
@@ -231,9 +248,19 @@
       tpItems.Text = "Items";
       tpItems.UseVisualStyleBackColor = true;
       // 
+      // lbItemId
+      // 
+      lbItemId.AutoSize = true;
+      lbItemId.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
+      lbItemId.Location = new Point(20, 16);
+      lbItemId.Name = "lbItemId";
+      lbItemId.Size = new Size(68, 21);
+      lbItemId.TabIndex = 10;
+      lbItemId.Text = "ItemId: x";
+      // 
       // btnAbortItem
       // 
-      btnAbortItem.Location = new Point(156, 14);
+      btnAbortItem.Location = new Point(226, 14);
       btnAbortItem.Name = "btnAbortItem";
       btnAbortItem.Size = new Size(75, 23);
       btnAbortItem.TabIndex = 9;
@@ -243,7 +270,7 @@
       // 
       // btnUpdateItem
       // 
-      btnUpdateItem.Location = new Point(75, 14);
+      btnUpdateItem.Location = new Point(145, 14);
       btnUpdateItem.Name = "btnUpdateItem";
       btnUpdateItem.Size = new Size(75, 23);
       btnUpdateItem.TabIndex = 8;
@@ -328,6 +355,7 @@
       // 
       // tpRelations
       // 
+      tpRelations.Controls.Add(lbRelationId);
       tpRelations.Controls.Add(btnCancelRelation);
       tpRelations.Controls.Add(btnUpdateRelation);
       tpRelations.Controls.Add(lbRelItemName);
@@ -343,6 +371,16 @@
       tpRelations.TabIndex = 1;
       tpRelations.Text = "Relation";
       tpRelations.UseVisualStyleBackColor = true;
+      // 
+      // lbRelationId
+      // 
+      lbRelationId.AutoSize = true;
+      lbRelationId.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
+      lbRelationId.Location = new Point(27, 22);
+      lbRelationId.Name = "lbRelationId";
+      lbRelationId.Size = new Size(94, 21);
+      lbRelationId.TabIndex = 11;
+      lbRelationId.Text = "RelationId: x";
       // 
       // btnCancelRelation
       // 
@@ -367,7 +405,7 @@
       // lbRelItemName
       // 
       lbRelItemName.AutoSize = true;
-      lbRelItemName.Location = new Point(143, 40);
+      lbRelItemName.Location = new Point(143, 63);
       lbRelItemName.Name = "lbRelItemName";
       lbRelItemName.Size = new Size(66, 15);
       lbRelItemName.TabIndex = 5;
@@ -376,7 +414,7 @@
       // label5
       // 
       label5.AutoSize = true;
-      label5.Location = new Point(58, 129);
+      label5.Location = new Point(46, 157);
       label5.Name = "label5";
       label5.Size = new Size(75, 15);
       label5.TabIndex = 4;
@@ -385,7 +423,7 @@
       // label4
       // 
       label4.AutoSize = true;
-      label4.Location = new Point(59, 83);
+      label4.Location = new Point(70, 112);
       label4.Name = "label4";
       label4.Size = new Size(50, 15);
       label4.TabIndex = 3;
@@ -394,7 +432,7 @@
       // label1
       // 
       label1.AutoSize = true;
-      label1.Location = new Point(54, 41);
+      label1.Location = new Point(70, 63);
       label1.Name = "label1";
       label1.Size = new Size(51, 15);
       label1.TabIndex = 2;
@@ -403,7 +441,7 @@
       // cbRelItem
       // 
       cbRelItem.FormattingEnabled = true;
-      cbRelItem.Location = new Point(158, 127);
+      cbRelItem.Location = new Point(143, 154);
       cbRelItem.Name = "cbRelItem";
       cbRelItem.Size = new Size(350, 23);
       cbRelItem.TabIndex = 1;
@@ -412,7 +450,7 @@
       // cbRelRelation
       // 
       cbRelRelation.FormattingEnabled = true;
-      cbRelRelation.Location = new Point(155, 81);
+      cbRelRelation.Location = new Point(143, 109);
       cbRelRelation.Name = "cbRelRelation";
       cbRelRelation.Size = new Size(350, 23);
       cbRelRelation.TabIndex = 0;
@@ -481,5 +519,9 @@
     private Label label5;
     private Label label4;
     private Label label1;
+    private Label lbItemId;
+    private Label lbRelationId;
+    private ToolStripSeparator toolStripSeparator2;
+    private ToolStripMenuItem miDeleteItem;
   }
 }

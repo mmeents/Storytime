@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Storytime.Core.Service;
+using Storytime.Core.Tools;
 
 namespace Storytime.Core {
   public static class DependencyInjection {
@@ -10,13 +11,23 @@ namespace Storytime.Core {
       services.AddDbContext<TContext>(options =>
         options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
 
-      services.AddMediatR(cfg =>
-        cfg.RegisterServicesFromAssembly(typeof(DependencyInjection).Assembly));
+      services.AddMediatR(cfg => {
+        cfg.RegisterServicesFromAssembly(typeof(DependencyInjection).Assembly);  // Storytime.Core
+        //cfg.RegisterServicesFromAssembly(typeof(KbDbContext).Assembly);           // KB.Core
+      });
 
       services.AddScoped<IAppDataModuleService, AppDataModuleService>();
 
       return services;
     }
+
+    public static IServiceCollection AddStorytimeMcpCore(this IServiceCollection services, IConfiguration configuration) {
+       services.AddStorytimeCore<StorytimeDbContext>(configuration);
+       services.AddScoped<IStorytimeToolsHandler, StorytimeToolsHandler>();
+       services.AddHostedService<StorytimeMcpHostedService>();
+      return services;
+    }
+  
 
   }
 }

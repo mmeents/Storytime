@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 namespace Storytime.Core.Constants {
   public static class Cx {
     public static string AppName => "Storytime";
+    public static string McpAppName => "StorytimeMCP";
     public static string AppVersion => "1.0.0";
     public const string ApiLocalPort = "44344";
     public const string ApiLocalhostUrl = $"https://localhost:{ApiLocalPort}";  // via iis express 

@@ -1,6 +1,7 @@
-﻿using MediatR;
-using KB.Core.Entities;
+﻿using KB.Core.Entities;
 using KB.Core.Models;
+using MediatR;
+using Microsoft.EntityFrameworkCore;
 
 namespace Storytime.Core.Handlers.Items {
 
@@ -9,16 +10,16 @@ namespace Storytime.Core.Handlers.Items {
     int ItemTypeId,
     string Description,
     string Data
-  ) : IRequest<ItemDto>;
+  ) : IRequest<ItemDto?>;
 
 
-  public class CreateItemCommandHandler : IRequestHandler<CreateItemCommand, ItemDto> {
+  public class CreateItemCommandHandler : IRequestHandler<CreateItemCommand, ItemDto?> {
     private readonly StorytimeDbContext _context;
     public CreateItemCommandHandler(StorytimeDbContext context) {
       _context = context;
     }
 
-    public async Task<ItemDto> Handle(CreateItemCommand request, CancellationToken cancellationToken) {
+    public async Task<ItemDto?> Handle(CreateItemCommand request, CancellationToken cancellationToken) {
 
       var itemType = await _context.ItemTypes.FindAsync(new object[] { request.ItemTypeId }, cancellationToken);
 
@@ -37,7 +38,24 @@ namespace Storytime.Core.Handlers.Items {
       _context.Items.Add(item);
       await _context.SaveChangesAsync(cancellationToken);
 
-      return item.ToDto();
+      var query = _context.Items
+        .AsNoTracking()
+        .Where(i => i.Id == item.Id && i.IsActive);
+
+      query = query
+          .Include(i => i.ItemType)
+          .Include(i => i.Relations)
+              .ThenInclude(r => r.RelatedItem)
+          .Include(i => i.Relations)
+              .ThenInclude(r => r.RelationType)
+          .Include(i => i.IncomingRelations)
+              .ThenInclude(r => r.Item)
+          .Include(i => i.IncomingRelations)
+              .ThenInclude(r => r.RelationType);
+          
+      item = await query.FirstOrDefaultAsync(cancellationToken);
+
+      return item != null ? item.ToDto(true) : null;
     }
   }
   

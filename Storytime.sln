@@ -7,7 +7,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Storytime.Core", "Storytime
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Storytime.Api", "Storytime.Api\Storytime.Api.csproj", "{5D794ECE-FDF8-4AEF-B873-01597E90749A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StorytimeAr", "StorytimeAr\StorytimeAr.csproj", "{A28EBB11-E06B-4A57-BB7B-F7CC6FFFA368}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StorytimeApp", "StorytimeAr\StorytimeApp.csproj", "{A28EBB11-E06B-4A57-BB7B-F7CC6FFFA368}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StorytimeMCP", "StorytimeMCP\StorytimeMCP.csproj", "{228E6EA8-951C-408D-8C89-460E3B69EAFB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,6 +29,10 @@ Global
 		{A28EBB11-E06B-4A57-BB7B-F7CC6FFFA368}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A28EBB11-E06B-4A57-BB7B-F7CC6FFFA368}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A28EBB11-E06B-4A57-BB7B-F7CC6FFFA368}.Release|Any CPU.Build.0 = Release|Any CPU
+		{228E6EA8-951C-408D-8C89-460E3B69EAFB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{228E6EA8-951C-408D-8C89-460E3B69EAFB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{228E6EA8-951C-408D-8C89-460E3B69EAFB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{228E6EA8-951C-408D-8C89-460E3B69EAFB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

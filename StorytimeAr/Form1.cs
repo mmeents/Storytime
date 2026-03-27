@@ -35,7 +35,7 @@ namespace StorytimeAr {
       }
     }
 
-    private async void LoadProjectItems() {
+    private async Task LoadProjectItems() {
 
       btnAbortItem.Visible = false;
       btnUpdateItem.Visible = false;
@@ -74,7 +74,7 @@ namespace StorytimeAr {
         }
 
 
-        LoadItemTypesCache();
+        await LoadItemTypesCache();
 
         if (selectedItemId.HasValue) {          
           TreeNode[] foundNodes = tvKb.Nodes.Find(selectedItemId.Value.ToString(), true);
@@ -90,57 +90,6 @@ namespace StorytimeAr {
         _logger.LogError(ex, "Error loading project items.");
         MessageBox.Show("An error occurred while loading project items. Please check the logs for details.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
       }
-    }
-
-    private async void LoadItemTypesCache() {
-      try {
-        var itemTypes = await _appDataModuleService.GetAllItemTypes();
-        _itemTypeCache = itemTypes.ToDictionary(t => t.Id, t => t);
-
-        edItemType.DataSource = _itemTypeCache.Values.ToList();
-        edItemType.DisplayMember = "Name";
-        edItemType.ValueMember = "Id";
-
-      } catch (Exception ex) {
-        _logger.LogError(ex, "Error loading item types.");
-        MessageBox.Show("An error occurred while loading item types. Please check the logs for details.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-      }
-      try {
-        var RelationTypes = await _appDataModuleService.GetAllRelationTypes();
-        cbRelRelation.DataSource = RelationTypes;
-        cbRelRelation.DisplayMember = "Relation";
-        cbRelRelation.ValueMember = "Id";
-      } catch (Exception ex) {
-        _logger.LogError(ex, "Error loading relation types.");
-        MessageBox.Show("An error occurred while loading relation types. Please check the logs for details.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-      }
-
-      try {
-        var items = _itemCache.Values.ToList();
-        cbRelItem.DataSource = items;
-        cbRelItem.DisplayMember = "Name";
-        cbRelItem.ValueMember = "Id";
-      } catch (Exception ex) {
-        _logger.LogError(ex, "Error loading items for relation dropdown.");
-        MessageBox.Show("An error occurred while loading items for relation dropdown. Please check the logs for details.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-      }
-
-    }
-
-    private void LoadItemsByRelationFromCache(StRelationType relationType) {
-      List<StItemType> allowedItemTypes = relationType switch {
-        StRelationType.Contains => new List<StItemType> { StItemType.Story, StItemType.Scene, StItemType.Beat },
-        StRelationType.HasBeat => new List<StItemType> { StItemType.Beat },
-        StRelationType.NextBeat => new List<StItemType> { StItemType.Beat },
-        StRelationType.UsesRule => new List<StItemType> { StItemType.Rule },
-        StRelationType.FeaturesCharacter => new List<StItemType> { StItemType.Character },
-        StRelationType.TakesPlaceAt => new List<StItemType> { StItemType.Location },
-        _ => new List<StItemType>()
-      };
-      var stories = _itemCache.Values.Where(i => allowedItemTypes.Contains((StItemType)i.ItemTypeId)).ToList();
-      cbRelItem.DataSource = stories;
-      cbRelItem.DisplayMember = "Name";
-      cbRelItem.ValueMember = "Id";
     }
 
     private async Task<ItemNode?> AddNodeById(ItemNode parent, int? itemId) {
@@ -171,8 +120,57 @@ namespace StorytimeAr {
     }
 
 
-    private void Form1_Shown(object sender, EventArgs e) {
-      LoadProjectItems();
+    private async Task LoadItemTypesCache() {
+      try {
+        _inSetupTpItems = true;
+        var itemTypes = await _appDataModuleService.GetAllItemTypes();
+        _itemTypeCache = itemTypes.ToDictionary(t => t.Id, t => t);
+
+        edItemType.DataSource = _itemTypeCache.Values.ToList();
+        edItemType.DisplayMember = "Name";
+        edItemType.ValueMember = "Id";
+
+      } catch (Exception ex) {
+        _logger.LogError(ex, "Error loading item types.");
+        MessageBox.Show("An error occurred while loading item types. Please check the logs for details.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+      }
+      try {
+        var RelationTypes = await _appDataModuleService.GetAllRelationTypes();
+        cbRelRelation.DataSource = RelationTypes;
+        cbRelRelation.DisplayMember = "Relation";
+        cbRelRelation.ValueMember = "Id";
+      } catch (Exception ex) {
+        _logger.LogError(ex, "Error loading relation types.");
+        MessageBox.Show("An error occurred while loading relation types. Please check the logs for details.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+      }
+      _inSetupTpItems = false;
+
+    }
+
+    private void LoadItemsByRelationFromCache(StRelationType relationType) {
+      List<StItemType> allowedItemTypes = relationType switch {
+        StRelationType.Contains => new List<StItemType> { StItemType.Project, StItemType.Story, StItemType.Scene, StItemType.Beat },
+        StRelationType.HasBeat => new List<StItemType> { StItemType.Beat },
+        StRelationType.NextBeat => new List<StItemType> { StItemType.Beat },
+        StRelationType.UsesRule => new List<StItemType> { StItemType.Rule },
+        StRelationType.FeaturesCharacter => new List<StItemType> { StItemType.Character },
+        StRelationType.TakesPlaceAt => new List<StItemType> { StItemType.Location },
+        _ => new List<StItemType>()
+      };
+      var filtered = _itemCache.Values
+        .Where(i => allowedItemTypes.Contains((StItemType)i.ItemTypeId))
+        .ToList();
+      _inSetupTpRelations = true;
+      cbRelItem.DataSource = filtered;
+      cbRelItem.DisplayMember = "Name";
+      cbRelItem.ValueMember = "Id";
+      _inSetupTpRelations = false;
+    }
+
+
+
+    private async void Form1_Shown(object sender, EventArgs e) {
+      await LoadProjectItems();
 
     }
 
@@ -190,6 +188,7 @@ namespace StorytimeAr {
           miAddLocation.Visible = false;
           miAddRule.Visible = false;
           miAddRefCharacter.Visible = false;
+          miDeleteItem.Visible = false;
         } else {
           if (_selectedNode.Item != null) {
             var itemTypeName = _itemTypeCache.ContainsKey(_selectedNode.Item.ItemTypeId) ? _itemTypeCache[_selectedNode.Item.ItemTypeId].Name : "";
@@ -201,6 +200,7 @@ namespace StorytimeAr {
             miAddRefCharacter.Visible = itemTypeName == "Story" || itemTypeName == "Scene" || itemTypeName == "Beat";
             miAddLocation.Visible = itemTypeName == "Story" || itemTypeName == "Scene" || itemTypeName == "Beat";
             miAddRule.Visible = itemTypeName == "Story" || itemTypeName == "Scene" || itemTypeName == "Beat" || itemTypeName == "Character";
+            miDeleteItem.Visible = true;
           } else {
             miAddProject.Visible = true;
             miAddStory.Visible = false;
@@ -210,6 +210,7 @@ namespace StorytimeAr {
             miAddLocation.Visible = false;
             miAddRule.Visible = false;
             miAddRefCharacter.Visible = false;
+            miDeleteItem.Visible = false;
           }
         }
 
@@ -287,6 +288,7 @@ namespace StorytimeAr {
       if (_selectedNode != null && _selectedNode.Item != null) {
         _inSetupTpItems = true;
         _CurrentItemBackup = _selectedNode.Item.Clone();
+        lbItemId.Text = "ItemId: "+_selectedNode.Item.Id.ToString();
         edItemType.DataBindings.Clear();
         edItemType.DataBindings.Add("SelectedValue", _selectedNode.Item, "ItemTypeId", true, DataSourceUpdateMode.OnPropertyChanged);
         edItemName.DataBindings.Clear();
@@ -304,6 +306,7 @@ namespace StorytimeAr {
       if (_selectedNode != null && _selectedNode.Relation != null) {
         _inSetupTpRelations = true;
         _CurrentRelationBackup = _selectedNode.Relation.Clone();
+        lbRelationId.Text = "RelationId: " + _selectedNode.Relation.Id.ToString();
         lbRelItemName.DataBindings.Clear();
         lbRelItemName.DataBindings.Add("Text", _selectedNode.Relation, "ItemName", true, DataSourceUpdateMode.OnPropertyChanged);
 
@@ -318,12 +321,12 @@ namespace StorytimeAr {
       }
     }
 
-    private void reloadTreeToolStripMenuItem_Click(object sender, EventArgs e) {
+    private async void reloadTreeToolStripMenuItem_Click(object sender, EventArgs e) {
       if (_selectedNode != null) {
-        LoadProjectItems();
+        await LoadProjectItems();
 
       } else {
-        LoadProjectItems();
+        await LoadProjectItems();
       }
     }
 
@@ -550,9 +553,19 @@ namespace StorytimeAr {
       }
     }
 
-    
+    private async void miDeleteItem_Click(object sender, EventArgs e) {
+      if (_selectedNode != null && _selectedNode.Item != null) {
+        var confirmResult = MessageBox.Show($"Are you sure you want to delete '{_selectedNode.Item.Name}' and all its relations?", "Confirm Delete", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+        if (confirmResult == DialogResult.Yes) {
+          var nodeToDelete = _selectedNode;
+          tvKb.SelectedNode = _selectedNode.Parent;
+          await _appDataModuleService.DeleteItem(nodeToDelete.Item.Id);
+          await LoadProjectItems();
+        }
+      }
+
+    }
+
   }
-
-
 
 }
