@@ -17,11 +17,12 @@ namespace Storytime.Core.Tools {
   public interface IStorytimeToolsHandler {
     Task<string> GetProjectItems();
     Task<string> GetItemById(int id);
+    Task<string> CreateRelatedItem(int parentItemId, int relationTypeId, int itemTypeId, string name, string description, string data);
     Task<string> CreateItem(string name, int itemTypeId, string description, string data);
     Task<string> UpdateItem(int id, string name, int itemTypeId, string description, string data);
     Task<string> GetRelationById(int id);
     Task<string> CreateRelation(int fromItemId, int toItemId, int relationTypeId);
-    Task<string> UpdateRelation(int relationId, int fromItemId, int toItemId, int relationTypeId);
+    Task<string> UpdateRelation(int relationId, int fromItemId, int toItemId, int relationTypeId, int rank);
     Task<string> GetSubgraph(int itemId, int depth = 3);
   }
 
@@ -61,6 +62,21 @@ namespace Storytime.Core.Tools {
       } catch (Exception ex) {
         _logger.LogError(ex, "Error retrieving item by id");
         var opResult = McpOpResult.CreateFailure("get-item-by-id", "Failed to retrieve item by id", ex);
+        return JsonSerializer.Serialize(opResult);
+      }
+    }
+
+    public async Task<string> CreateRelatedItem(int parentItemId, int relationTypeId, int itemTypeId, string name, string description, string data) {
+      try {
+        using var scope = _serviceScopeFactory.CreateScope();
+        var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+        var command = new CreateRelatedItemCommand(parentItemId, relationTypeId, itemTypeId, name, description, data);
+        var result = await mediator.Send(command);
+        var opResult = McpOpResult.CreateSuccess("create-related-item", "Successfully created related item", result);
+        return JsonSerializer.Serialize(opResult);
+      } catch (Exception ex) {
+        _logger.LogError(ex, "Error creating related item");
+        var opResult = McpOpResult.CreateFailure("create-related-item", "Failed to create related item", ex);
         return JsonSerializer.Serialize(opResult);
       }
     }
@@ -125,11 +141,11 @@ namespace Storytime.Core.Tools {
       }
     }
 
-    public async Task<string> UpdateRelation(int relationId, int fromItemId, int toItemId, int relationTypeId) {
+    public async Task<string> UpdateRelation(int relationId, int fromItemId, int toItemId, int relationTypeId, int rank) {
       try {
         using var scope = _serviceScopeFactory.CreateScope();
         var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
-        var command = new UpdateItemRelationCommand(relationId, fromItemId, relationTypeId, toItemId);
+        var command = new UpdateItemRelationCommand(relationId, fromItemId, relationTypeId, toItemId, rank);
         var result = await mediator.Send(command);
         var opResult = McpOpResult.CreateSuccess("update-relation", "Successfully updated relation", result);
         return JsonSerializer.Serialize(opResult);

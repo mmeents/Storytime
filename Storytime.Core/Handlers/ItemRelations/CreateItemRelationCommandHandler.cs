@@ -16,24 +16,30 @@ namespace Storytime.Core.Handlers.ItemRelations {
       _context = context;
     }
     public async Task<ItemRelationDto?> Handle(CreateItemRelationCommand request, CancellationToken cancellationToken) {
+
+      var nextRank = await _context.ItemRelations
+        .Where(ir => ir.ItemId == request.ItemId)
+        .CountAsync(cancellationToken) + 1;
+
       var itemRelation = new ItemRelation {
         ItemId = request.ItemId,
         RelationTypeId = request.RelationTypeId,
-        RelatedItemId = request.RelatedItemId
+        RelatedItemId = request.RelatedItemId,
+        Rank = nextRank
       };
+
       _context.ItemRelations.Add(itemRelation);
       await _context.SaveChangesAsync(cancellationToken);
 
-      var query = _context.ItemRelations
-       .Include(ir => ir.Item)
-       .Include(ir => ir.RelatedItem)
-       .Include(ir => ir.RelationType)
-       .AsNoTracking()
-       .AsQueryable();
-      query = query.Where(ir => ir.Id == itemRelation.Id);
-      var result = await query.FirstOrDefaultAsync(cancellationToken);
-      return result?.ToDto();
+      var result = await _context.ItemRelations
+        .Include(ir => ir.Item)
+        .Include(ir => ir.RelatedItem)
+        .Include(ir => ir.RelationType)
+        .AsNoTracking()
+        .Where(ir => ir.Id == itemRelation.Id)
+        .FirstOrDefaultAsync(cancellationToken);
 
+      return result?.ToDto();
     }
   }
 }

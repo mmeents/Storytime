@@ -1,9 +1,10 @@
-﻿using System;
+﻿using KB.Core.Models;
+using Storytime.Core;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using KB.Core.Models;
 using System.Windows.Forms;
 
 namespace StorytimeAr.Models {
@@ -34,6 +35,15 @@ namespace StorytimeAr.Models {
       };
       return node;
 
+    }
+    public static ItemNode? FindAncestorOfType(this ItemNode node, StItemType itemType) {
+      var current = node.Parent as ItemNode;
+      while (current != null) {
+        if (!current.IsRelationNode && current.Item?.ItemTypeId == (int)itemType)
+          return current;
+        current = current.Parent as ItemNode;
+      }
+      return null;
     }
   }
 

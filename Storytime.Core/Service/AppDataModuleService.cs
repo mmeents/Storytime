@@ -1,14 +1,19 @@
-﻿using KB.Core.Models;
+﻿using Azure.Core;
 using KB.Core.Entities;
+using KB.Core.Models;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using System.Threading;
-using MediatR;
+using Storytime.Core.Agents;
 using Storytime.Core.Handlers.Items;
+using Storytime.Core.Models;
 
 
 namespace Storytime.Core.Service {
   public interface IAppDataModuleService {
+    AgentRunnerMode CurrentMode { get; set; }
+    string CurrentLMStudioModel { get; set; }
+    string CurrentClaudeModel { get; set; }
     Task<List<ItemDto>> GetAllProjectItems();
     Task<ItemDto?> GetItemById(int? id);
     Task<List<ItemRelationDto>> GetAllRelations();
@@ -21,14 +26,51 @@ namespace Storytime.Core.Service {
     Task<ItemDto?> CreateItem(ItemDto itemDto);
     Task<ItemRelationDto?> CreateRelation(int itemId, int? relatedItemId, int relationTypeId);
 
+    Task<List<string>> GetLmStudioModels();
+    Task<bool> GenerateStory(int projectId);
+    Task<bool> GenerateSceneAndCharacterForStory(int storyId);
+    Task<bool> GenerateBeatsForScene(int storyId, int sceneId);
+    Task<bool> GenerateCallSheetForStoryScene(int storyId, int sceneId);
+    Task<bool> GeneratePerformanceForCallSheet(int callSheetId, int storyId);
+    Task<bool> GenerateDeliverableForPerformance(int performanceId);
 
   }
 
   public class AppDataModuleService : IAppDataModuleService {    
     private readonly IServiceScopeFactory _scopeFactory;
+    private readonly IFactorySettingsService _factorySettingsService; 
 
-    public AppDataModuleService(IServiceScopeFactory scopeFactory) { 
+    public AppDataModuleService(IServiceScopeFactory scopeFactory, IFactorySettingsService factorySettingsService) { 
         _scopeFactory = scopeFactory;        
+        _factorySettingsService = factorySettingsService;
+    }
+
+    public AgentRunnerMode CurrentMode { 
+      get {
+        return _factorySettingsService.CurrentMode;            
+      }
+      set {
+        _factorySettingsService.CurrentMode = value;
+     
+      }
+    }
+
+    public string CurrentLMStudioModel { 
+      get {
+        return _factorySettingsService.LMStudioModel;            
+      }
+      set {
+        _factorySettingsService.LMStudioModel = value;
+      }
+    }
+
+    public string CurrentClaudeModel { 
+      get {
+        return _factorySettingsService.ClaudeModel;            
+      }
+      set {
+        _factorySettingsService.ClaudeModel = value;
+      }
     }
 
     public async Task<List<ItemDto>> GetAllProjectItems() {
@@ -108,16 +150,21 @@ namespace Storytime.Core.Service {
       relation.ItemId = relationDto.ItemId;
       relation.RelatedItemId = relationDto.RelatedItemId;
       relation.RelationTypeId = relationDto.RelationTypeId;
+      relation.Rank = relationDto.Rank;
       await context.SaveChangesAsync();
       return relation.ToDto();
     }
 
     public async Task<ItemRelationDto?> CreateItemRelation(ItemRelationDto relationDto) {
       var context = GetDbContext();
+      var nextRank = await context.ItemRelations
+        .Where(ir => ir.ItemId == relationDto.ItemId)
+        .CountAsync() + 1;
       var relation = new ItemRelation {
         ItemId = relationDto.ItemId,
         RelatedItemId = relationDto.RelatedItemId,
-        RelationTypeId = relationDto.RelationTypeId
+        RelationTypeId = relationDto.RelationTypeId,
+        Rank = nextRank
       };
       context.ItemRelations.Add(relation);
       await context.SaveChangesAsync();
@@ -167,14 +214,76 @@ namespace Storytime.Core.Service {
       if (item == null || relationType == null) {
         return null;
       }
+      var nextRank = await context.ItemRelations
+        .Where(ir => ir.ItemId == itemId)
+        .CountAsync() + 1;
       var relation = new ItemRelation {
         ItemId = itemId,
         RelatedItemId = relatedItemId,
-        RelationTypeId = relationTypeId
+        RelationTypeId = relationTypeId,
+        Rank = nextRank
       };
       context.ItemRelations.Add(relation);
       await context.SaveChangesAsync();
       return relation.ToDto();
+    }
+
+    public async Task<List<string>> GetLmStudioModels() { 
+        using var scope = _scopeFactory.CreateScope();
+        var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+        var query = new Handlers.LmStudio.GetModelsQuery();
+        var result = await mediator.Send(query);
+        return result;
+    }
+
+    public async Task<bool> GenerateStory(int projectId) {
+        using var scope = _scopeFactory.CreateScope();
+        var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+        var command = new Handlers.LmStudio.GenerateStoryCommand(projectId);
+        var result = await mediator.Send(command);
+        return result;
+    }
+    
+    public async Task<bool> GenerateSceneAndCharacterForStory(int storyId) {
+        using var scope = _scopeFactory.CreateScope();
+        var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+        var command = new Handlers.LmStudio.GenerateSceneAndCharacterForStoryCommand(storyId);
+        var result = await mediator.Send(command);
+        return result;
+    }
+
+    public async Task<bool> GenerateBeatsForScene(int storyId, int sceneId) {
+        using var scope = _scopeFactory.CreateScope();
+        var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+        var command = new Handlers.LmStudio.GenerateBeatsForSceneCommand(storyId, sceneId);
+        var result = await mediator.Send(command);
+        return result;
+    }
+
+    public async Task<bool> GenerateCallSheetForStoryScene(int storyId, int sceneId) {
+        using var scope = _scopeFactory.CreateScope();
+        var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+        
+        var command = new Handlers.LmStudio.GenerateCallSheetCommand(storyId, sceneId);
+        var result = await mediator.Send(command);
+        return result;
+    }
+
+    public async Task<bool> GeneratePerformanceForCallSheet(int callSheetId, int storyId) {
+        using var scope = _scopeFactory.CreateScope();
+        var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+        
+        var command = new Handlers.LmStudio.GeneratePerformanceForCallSheetCommand(callSheetId, storyId);
+        var result = await mediator.Send(command);
+        return result;
+    }
+
+    public async Task<bool> GenerateDeliverableForPerformance(int performanceId) {
+        using var scope = _scopeFactory.CreateScope();
+        var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();        
+        var command = new Handlers.LmStudio.GenerateDeliverableCommand(performanceId);
+        var result = await mediator.Send(command);
+        return result;
     }
 
     private StorytimeDbContext GetDbContext() {

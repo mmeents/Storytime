@@ -24,8 +24,10 @@
     /// </summary>
     private void InitializeComponent() {
       components = new System.ComponentModel.Container();
+      System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
       splitContainer1 = new SplitContainer();
       splitContainer2 = new SplitContainer();
+      btnReloadTree = new Button();
       tvKb = new TreeView();
       cmsTreeview = new ContextMenuStrip(components);
       reloadTreeToolStripMenuItem = new ToolStripMenuItem();
@@ -39,9 +41,27 @@
       miAddLocation = new ToolStripMenuItem();
       miAddRule = new ToolStripMenuItem();
       toolStripSeparator2 = new ToolStripSeparator();
+      miGenerateStory = new ToolStripMenuItem();
+      miGenerateScene = new ToolStripMenuItem();
+      miGenerateBeat = new ToolStripMenuItem();
+      miGenerateCallSheet = new ToolStripMenuItem();
+      miGeneratePerformance = new ToolStripMenuItem();
+      miGenerateDeliverable = new ToolStripMenuItem();
+      toolStripSeparator3 = new ToolStripSeparator();
       miDeleteItem = new ToolStripMenuItem();
       tabControl1 = new TabControl();
       tpBrowse = new TabPage();
+      label6 = new Label();
+      tbTestOut = new TextBox();
+      lbLMStudioModels = new ListBox();
+      cbClaudeModel = new ComboBox();
+      rbClaudeCode = new RadioButton();
+      rbLMStudio = new RadioButton();
+      label8 = new Label();
+      lbClaudeLaunch = new LinkLabel();
+      lbCurrentModel = new Label();
+      edLmStudioModel = new TextBox();
+      btnGetLmStudioModels = new Button();
       tpItems = new TabPage();
       lbItemId = new Label();
       btnAbortItem = new Button();
@@ -55,6 +75,8 @@
       edItemType = new ComboBox();
       edItemName = new TextBox();
       tpRelations = new TabPage();
+      label7 = new Label();
+      edRank = new NumericUpDown();
       lbRelationId = new Label();
       btnCancelRelation = new Button();
       btnUpdateRelation = new Button();
@@ -69,12 +91,15 @@
       splitContainer1.Panel2.SuspendLayout();
       splitContainer1.SuspendLayout();
       ((System.ComponentModel.ISupportInitialize)splitContainer2).BeginInit();
+      splitContainer2.Panel1.SuspendLayout();
       splitContainer2.Panel2.SuspendLayout();
       splitContainer2.SuspendLayout();
       cmsTreeview.SuspendLayout();
       tabControl1.SuspendLayout();
+      tpBrowse.SuspendLayout();
       tpItems.SuspendLayout();
       tpRelations.SuspendLayout();
+      ((System.ComponentModel.ISupportInitialize)edRank).BeginInit();
       SuspendLayout();
       // 
       // splitContainer1
@@ -101,12 +126,26 @@
       splitContainer2.Name = "splitContainer2";
       splitContainer2.Orientation = Orientation.Horizontal;
       // 
+      // splitContainer2.Panel1
+      // 
+      splitContainer2.Panel1.Controls.Add(btnReloadTree);
+      // 
       // splitContainer2.Panel2
       // 
       splitContainer2.Panel2.Controls.Add(tvKb);
       splitContainer2.Size = new Size(280, 539);
       splitContainer2.SplitterDistance = 64;
       splitContainer2.TabIndex = 0;
+      // 
+      // btnReloadTree
+      // 
+      btnReloadTree.Location = new Point(3, 38);
+      btnReloadTree.Name = "btnReloadTree";
+      btnReloadTree.Size = new Size(137, 23);
+      btnReloadTree.TabIndex = 0;
+      btnReloadTree.Text = "Agents done Reload";
+      btnReloadTree.UseVisualStyleBackColor = true;
+      btnReloadTree.Click += btnReloadTree_Click;
       // 
       // tvKb
       // 
@@ -120,9 +159,9 @@
       // 
       // cmsTreeview
       // 
-      cmsTreeview.Items.AddRange(new ToolStripItem[] { reloadTreeToolStripMenuItem, toolStripSeparator1, miAddProject, miAddStory, miAddScene, miAddBeat, miAddCharacter, miAddRefCharacter, miAddLocation, miAddRule, toolStripSeparator2, miDeleteItem });
+      cmsTreeview.Items.AddRange(new ToolStripItem[] { reloadTreeToolStripMenuItem, toolStripSeparator1, miAddProject, miAddStory, miAddScene, miAddBeat, miAddCharacter, miAddRefCharacter, miAddLocation, miAddRule, toolStripSeparator2, miGenerateStory, miGenerateScene, miGenerateBeat, miGenerateCallSheet, miGeneratePerformance, miGenerateDeliverable, toolStripSeparator3, miDeleteItem });
       cmsTreeview.Name = "cmsTreeview";
-      cmsTreeview.Size = new Size(195, 258);
+      cmsTreeview.Size = new Size(195, 374);
       cmsTreeview.Opening += cmsTreeview_Opening;
       // 
       // reloadTreeToolStripMenuItem
@@ -198,6 +237,53 @@
       toolStripSeparator2.Name = "toolStripSeparator2";
       toolStripSeparator2.Size = new Size(191, 6);
       // 
+      // miGenerateStory
+      // 
+      miGenerateStory.Name = "miGenerateStory";
+      miGenerateStory.Size = new Size(194, 22);
+      miGenerateStory.Text = "Generate Story";
+      miGenerateStory.Click += miGenerateStory_Click;
+      // 
+      // miGenerateScene
+      // 
+      miGenerateScene.Name = "miGenerateScene";
+      miGenerateScene.Size = new Size(194, 22);
+      miGenerateScene.Text = "Generate Scene";
+      miGenerateScene.Click += miGenerateScene_Click;
+      // 
+      // miGenerateBeat
+      // 
+      miGenerateBeat.Name = "miGenerateBeat";
+      miGenerateBeat.Size = new Size(194, 22);
+      miGenerateBeat.Text = "Generate Beat Set";
+      miGenerateBeat.Click += miGenerateBeat_Click;
+      // 
+      // miGenerateCallSheet
+      // 
+      miGenerateCallSheet.Name = "miGenerateCallSheet";
+      miGenerateCallSheet.Size = new Size(194, 22);
+      miGenerateCallSheet.Text = "Generate CallSheet";
+      miGenerateCallSheet.Click += miGenerateCallSheet_Click;
+      // 
+      // miGeneratePerformance
+      // 
+      miGeneratePerformance.Name = "miGeneratePerformance";
+      miGeneratePerformance.Size = new Size(194, 22);
+      miGeneratePerformance.Text = "Generate Performance";
+      miGeneratePerformance.Click += miGeneratePerformance_Click;
+      // 
+      // miGenerateDeliverable
+      // 
+      miGenerateDeliverable.Name = "miGenerateDeliverable";
+      miGenerateDeliverable.Size = new Size(194, 22);
+      miGenerateDeliverable.Text = "Generate Deliverable";
+      miGenerateDeliverable.Click += miGenerateDeliverable_Click;
+      // 
+      // toolStripSeparator3
+      // 
+      toolStripSeparator3.Name = "toolStripSeparator3";
+      toolStripSeparator3.Size = new Size(191, 6);
+      // 
       // miDeleteItem
       // 
       miDeleteItem.Name = "miDeleteItem";
@@ -219,13 +305,136 @@
       // 
       // tpBrowse
       // 
+      tpBrowse.Controls.Add(label6);
+      tpBrowse.Controls.Add(tbTestOut);
+      tpBrowse.Controls.Add(lbLMStudioModels);
+      tpBrowse.Controls.Add(cbClaudeModel);
+      tpBrowse.Controls.Add(rbClaudeCode);
+      tpBrowse.Controls.Add(rbLMStudio);
+      tpBrowse.Controls.Add(label8);
+      tpBrowse.Controls.Add(lbClaudeLaunch);
+      tpBrowse.Controls.Add(lbCurrentModel);
+      tpBrowse.Controls.Add(edLmStudioModel);
+      tpBrowse.Controls.Add(btnGetLmStudioModels);
       tpBrowse.Location = new Point(4, 24);
       tpBrowse.Name = "tpBrowse";
       tpBrowse.Padding = new Padding(3);
       tpBrowse.Size = new Size(549, 511);
       tpBrowse.TabIndex = 2;
-      tpBrowse.Text = "Browse";
+      tpBrowse.Text = "Settings";
       tpBrowse.UseVisualStyleBackColor = true;
+      // 
+      // label6
+      // 
+      label6.AutoSize = true;
+      label6.Location = new Point(38, 302);
+      label6.Name = "label6";
+      label6.Size = new Size(52, 15);
+      label6.TabIndex = 11;
+      label6.Text = "Error log";
+      // 
+      // tbTestOut
+      // 
+      tbTestOut.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+      tbTestOut.Location = new Point(37, 327);
+      tbTestOut.Multiline = true;
+      tbTestOut.Name = "tbTestOut";
+      tbTestOut.Size = new Size(504, 176);
+      tbTestOut.TabIndex = 10;
+      // 
+      // lbLMStudioModels
+      // 
+      lbLMStudioModels.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+      lbLMStudioModels.FormattingEnabled = true;
+      lbLMStudioModels.Location = new Point(173, 145);
+      lbLMStudioModels.Name = "lbLMStudioModels";
+      lbLMStudioModels.Size = new Size(368, 64);
+      lbLMStudioModels.TabIndex = 9;
+      lbLMStudioModels.DoubleClick += lbLMStudioModels_DoubleClick;
+      // 
+      // cbClaudeModel
+      // 
+      cbClaudeModel.FormattingEnabled = true;
+      cbClaudeModel.Items.AddRange(new object[] { "sonnet", "opus" });
+      cbClaudeModel.Location = new Point(173, 252);
+      cbClaudeModel.Name = "cbClaudeModel";
+      cbClaudeModel.Size = new Size(368, 23);
+      cbClaudeModel.TabIndex = 8;
+      cbClaudeModel.Text = "Sonnet";
+      cbClaudeModel.TextChanged += cbClaudeModel_TextChanged;
+      // 
+      // rbClaudeCode
+      // 
+      rbClaudeCode.AutoSize = true;
+      rbClaudeCode.Location = new Point(37, 253);
+      rbClaudeCode.Name = "rbClaudeCode";
+      rbClaudeCode.Size = new Size(93, 19);
+      rbClaudeCode.TabIndex = 7;
+      rbClaudeCode.Tag = "model";
+      rbClaudeCode.Text = "Claude Code";
+      rbClaudeCode.UseVisualStyleBackColor = true;
+      rbClaudeCode.CheckedChanged += rbClaudeCode_CheckedChanged;
+      // 
+      // rbLMStudio
+      // 
+      rbLMStudio.AutoSize = true;
+      rbLMStudio.Checked = true;
+      rbLMStudio.Location = new Point(37, 94);
+      rbLMStudio.Name = "rbLMStudio";
+      rbLMStudio.Size = new Size(79, 19);
+      rbLMStudio.TabIndex = 6;
+      rbLMStudio.TabStop = true;
+      rbLMStudio.Tag = "model";
+      rbLMStudio.Text = "LM Studio";
+      rbLMStudio.UseVisualStyleBackColor = true;
+      rbLMStudio.CheckedChanged += rbLMStudio_CheckedChanged;
+      // 
+      // label8
+      // 
+      label8.AutoSize = true;
+      label8.Location = new Point(23, 22);
+      label8.Name = "label8";
+      label8.Size = new Size(120, 15);
+      label8.TabIndex = 5;
+      label8.Text = "Agent Launch Folder:";
+      // 
+      // lbClaudeLaunch
+      // 
+      lbClaudeLaunch.AutoSize = true;
+      lbClaudeLaunch.Location = new Point(173, 22);
+      lbClaudeLaunch.Name = "lbClaudeLaunch";
+      lbClaudeLaunch.Size = new Size(93, 15);
+      lbClaudeLaunch.TabIndex = 4;
+      lbClaudeLaunch.TabStop = true;
+      lbClaudeLaunch.Text = "lbClaudeLaunch";
+      lbClaudeLaunch.LinkClicked += lbClaudeLaunch_LinkClicked;
+      // 
+      // lbCurrentModel
+      // 
+      lbCurrentModel.AutoSize = true;
+      lbCurrentModel.Location = new Point(23, 56);
+      lbCurrentModel.Name = "lbCurrentModel";
+      lbCurrentModel.Size = new Size(133, 15);
+      lbCurrentModel.TabIndex = 3;
+      lbCurrentModel.Text = " LMStudioModel to use:";
+      // 
+      // edLmStudioModel
+      // 
+      edLmStudioModel.Location = new Point(173, 93);
+      edLmStudioModel.Name = "edLmStudioModel";
+      edLmStudioModel.Size = new Size(368, 23);
+      edLmStudioModel.TabIndex = 2;
+      edLmStudioModel.Text = "nvidia/nemotron-3-nano-4b";
+      // 
+      // btnGetLmStudioModels
+      // 
+      btnGetLmStudioModels.Location = new Point(58, 145);
+      btnGetLmStudioModels.Name = "btnGetLmStudioModels";
+      btnGetLmStudioModels.Size = new Size(85, 23);
+      btnGetLmStudioModels.TabIndex = 1;
+      btnGetLmStudioModels.Text = "Get Models";
+      btnGetLmStudioModels.UseVisualStyleBackColor = true;
+      btnGetLmStudioModels.Click += btnGetLmStudioModels_Click;
       // 
       // tpItems
       // 
@@ -281,7 +490,7 @@
       // label3
       // 
       label3.AutoSize = true;
-      label3.Location = new Point(39, 349);
+      label3.Location = new Point(38, 293);
       label3.Name = "label3";
       label3.Size = new Size(31, 15);
       label3.TabIndex = 7;
@@ -317,10 +526,11 @@
       // edItemData
       // 
       edItemData.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-      edItemData.Location = new Point(76, 346);
+      edItemData.Location = new Point(76, 290);
       edItemData.Multiline = true;
       edItemData.Name = "edItemData";
-      edItemData.Size = new Size(465, 157);
+      edItemData.ScrollBars = ScrollBars.Both;
+      edItemData.Size = new Size(465, 213);
       edItemData.TabIndex = 3;
       edItemData.TextChanged += edItemName_TextChanged;
       // 
@@ -330,7 +540,8 @@
       edItemDesc.Location = new Point(76, 109);
       edItemDesc.Multiline = true;
       edItemDesc.Name = "edItemDesc";
-      edItemDesc.Size = new Size(465, 231);
+      edItemDesc.ScrollBars = ScrollBars.Both;
+      edItemDesc.Size = new Size(465, 175);
       edItemDesc.TabIndex = 2;
       edItemDesc.TextChanged += edItemName_TextChanged;
       // 
@@ -355,6 +566,8 @@
       // 
       // tpRelations
       // 
+      tpRelations.Controls.Add(label7);
+      tpRelations.Controls.Add(edRank);
       tpRelations.Controls.Add(lbRelationId);
       tpRelations.Controls.Add(btnCancelRelation);
       tpRelations.Controls.Add(btnUpdateRelation);
@@ -371,6 +584,24 @@
       tpRelations.TabIndex = 1;
       tpRelations.Text = "Relation";
       tpRelations.UseVisualStyleBackColor = true;
+      // 
+      // label7
+      // 
+      label7.AutoSize = true;
+      label7.Location = new Point(56, 88);
+      label7.Name = "label7";
+      label7.Size = new Size(66, 15);
+      label7.TabIndex = 13;
+      label7.Text = "Rank Order";
+      // 
+      // edRank
+      // 
+      edRank.Location = new Point(146, 86);
+      edRank.Maximum = new decimal(new int[] { 10000, 0, 0, 0 });
+      edRank.Name = "edRank";
+      edRank.Size = new Size(120, 23);
+      edRank.TabIndex = 12;
+      edRank.ValueChanged += cbRelItem_SelectedIndexChanged;
       // 
       // lbRelationId
       // 
@@ -414,7 +645,7 @@
       // label5
       // 
       label5.AutoSize = true;
-      label5.Location = new Point(46, 157);
+      label5.Location = new Point(49, 147);
       label5.Name = "label5";
       label5.Size = new Size(75, 15);
       label5.TabIndex = 4;
@@ -423,7 +654,7 @@
       // label4
       // 
       label4.AutoSize = true;
-      label4.Location = new Point(70, 112);
+      label4.Location = new Point(73, 118);
       label4.Name = "label4";
       label4.Size = new Size(50, 15);
       label4.TabIndex = 3;
@@ -441,7 +672,7 @@
       // cbRelItem
       // 
       cbRelItem.FormattingEnabled = true;
-      cbRelItem.Location = new Point(143, 154);
+      cbRelItem.Location = new Point(146, 144);
       cbRelItem.Name = "cbRelItem";
       cbRelItem.Size = new Size(350, 23);
       cbRelItem.TabIndex = 1;
@@ -450,7 +681,7 @@
       // cbRelRelation
       // 
       cbRelRelation.FormattingEnabled = true;
-      cbRelRelation.Location = new Point(143, 109);
+      cbRelRelation.Location = new Point(146, 115);
       cbRelRelation.Name = "cbRelRelation";
       cbRelRelation.Size = new Size(350, 23);
       cbRelRelation.TabIndex = 0;
@@ -462,6 +693,7 @@
       AutoScaleMode = AutoScaleMode.Font;
       ClientSize = new Size(841, 539);
       Controls.Add(splitContainer1);
+      Icon = (Icon)resources.GetObject("$this.Icon");
       Name = "Form1";
       Text = "Storytime";
       Shown += Form1_Shown;
@@ -469,15 +701,19 @@
       splitContainer1.Panel2.ResumeLayout(false);
       ((System.ComponentModel.ISupportInitialize)splitContainer1).EndInit();
       splitContainer1.ResumeLayout(false);
+      splitContainer2.Panel1.ResumeLayout(false);
       splitContainer2.Panel2.ResumeLayout(false);
       ((System.ComponentModel.ISupportInitialize)splitContainer2).EndInit();
       splitContainer2.ResumeLayout(false);
       cmsTreeview.ResumeLayout(false);
       tabControl1.ResumeLayout(false);
+      tpBrowse.ResumeLayout(false);
+      tpBrowse.PerformLayout();
       tpItems.ResumeLayout(false);
       tpItems.PerformLayout();
       tpRelations.ResumeLayout(false);
       tpRelations.PerformLayout();
+      ((System.ComponentModel.ISupportInitialize)edRank).EndInit();
       ResumeLayout(false);
     }
 
@@ -523,5 +759,26 @@
     private Label lbRelationId;
     private ToolStripSeparator toolStripSeparator2;
     private ToolStripMenuItem miDeleteItem;
+    private Button btnGetLmStudioModels;
+    private Label lbCurrentModel;
+    private TextBox edLmStudioModel;
+    private Button btnReloadTree;
+    private ToolStripMenuItem miGenerateStory;
+    private ToolStripSeparator toolStripSeparator3;
+    private ToolStripMenuItem miGenerateScene;
+    private ToolStripMenuItem miGenerateBeat;
+    private Label label7;
+    private NumericUpDown edRank;
+    private ToolStripMenuItem miGenerateCallSheet;
+    private ToolStripMenuItem miGeneratePerformance;
+    private ToolStripMenuItem miGenerateDeliverable;
+    private LinkLabel lbClaudeLaunch;
+    private Label label8;
+    private RadioButton rbLMStudio;
+    private RadioButton rbClaudeCode;
+    private ComboBox cbClaudeModel;
+    private ListBox lbLMStudioModels;
+    private Label label6;
+    private TextBox tbTestOut;
   }
 }

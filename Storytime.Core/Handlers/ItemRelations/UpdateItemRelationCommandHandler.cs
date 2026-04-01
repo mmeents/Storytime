@@ -12,7 +12,8 @@ namespace Storytime.Core.Handlers.ItemRelations {
       int Id,
       int ItemId,
       int RelationTypeId,
-      int RelatedItemId
+      int RelatedItemId,
+      int? Rank = null
   ) : IRequest<ItemRelationDto?>;
   public class UpdateItemRelationCommandHandler : IRequestHandler<UpdateItemRelationCommand, ItemRelationDto?> {
     private readonly StorytimeDbContext _context;
@@ -27,6 +28,7 @@ namespace Storytime.Core.Handlers.ItemRelations {
       itemRelation.ItemId = request.ItemId;
       itemRelation.RelationTypeId = request.RelationTypeId;
       itemRelation.RelatedItemId = request.RelatedItemId;
+      itemRelation.Rank = request.Rank;
       await _context.SaveChangesAsync(cancellationToken);
 
       var query = _context.ItemRelations

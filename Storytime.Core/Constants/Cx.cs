@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Storytime.Core.Agents;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,6 +12,43 @@ namespace Storytime.Core.Constants {
     public static string AppVersion => "1.0.0";
     public const string ApiLocalPort = "44344";
     public const string ApiLocalhostUrl = $"https://localhost:{ApiLocalPort}";  // via iis express 
+        
+    public const string LMStudioUrl = "http://10.0.0.118:8669";
+    public const string LMStudioApiKey = "sk-lm-njtLGuVe:Vcbn9IXvEghho3wt9TCx";
+    public const string LMStudioStorytimeMcpToolName = "mcp/storytime-mcp";
+    public const string LMStudioDefaultModel = "nvidia/nemotron-3-nano-4b";
+    public const string ClaudeDefaultModel = "sonnet";
+    public const int DefaultLmStudioContextLength = 8000;
+
+    // Agent runner modes LmStudio, ClaudeCode 
+    // public const AgentRunnerMode DefaultAgentRunnerMode = AgentRunnerMode.ClaudeCode;
+    public const AgentRunnerMode DefaultAgentRunnerMode = AgentRunnerMode.LmStudio;
+
+    public const string ValidRelationTypes = "Relation types(id:type): 1:Contains, 4:UsesRule, 5:FeaturesCharacter, 6:TakesPlaceAt, 7:UsesTone, 8:DirectedAs, 9:Produces 10:HasRole;";
+    public const string ValidItemTypes = "Item types(id:name): 1:Project, 2:Story, 3:Scene, 4:Beat, 5:Character, 6:Location, 7:Rule, 8:Tone, 9:CallSheet, 10:Performance, 11:Deliverable;";
+
+    public const string CmdGetProjects = "get-projects";
+    public const string CmdGetById = "get-item-by-id";
+    public const string CmdGetSubgraph = "get-subgraph";
+    public const string CmdAddCharacter = "add-character-to-story";
+    public const string CmdAddStory = "add-story-to-project";
+    public const string CmdAddScene = "add-scene-to-story";
+    public const string CmdAddBeat = "add-beat-to-scene";
+    public const string CmdAddCallSheet = "add-call-sheet-to-scene";
+    public const string CmdAddNarrationToCallSheet = "add-narration-to-call-sheet";
+    public const string CmdAddRoleToCallSheet = "add-role-to-call-sheet";
+
+    public const string CmdAddRelationItem = "create-related-item";
+    public const string CmdAddItem = "create-item";
+    public const string CmdUpdateItem = "update-item";
+    public const string CmdGetRelationById = "get-relation-by-id";
+    public const string CmdAddRelataion = "create-relation";
+    public const string CmdUpdateRelation = "update-relation";
+
+    public const string CmdAddCharacterAction = "add-character-action-to-performance";
+    public const string CmdAddCharacterSpeak = "add-character-speak-to-performance";
+
+
 
     public static string CommonAppPath {
       get {
@@ -33,6 +71,19 @@ namespace Storytime.Core.Constants {
         return logsPath;
       }
     }
+
+    public static string ClaudeExecutablePath {
+      get {
+        string claudePath = Path.Combine(CommonAppPath, "claude").ResolvePath();
+        if (!Directory.Exists(claudePath)) Directory.CreateDirectory(claudePath);
+        if (!File.Exists(Path.Combine(claudePath, ".mcp.json")) ) {
+          StringBuilder sb = new StringBuilder();
+          sb.Append($"{{\r\n\t\"mcpServers\": {{\r\n\t  \"storytime-mcp\": {{\r\n\t\t\"type\": \"stdio\",\r\n\t\t\"command\": \"{claudePath}\\\\StorytimeMCP.exe\",\r\n\t\t\"args\": []\r\n\t  }}\r\n\t}}\r\n}}");
+          File.WriteAllText(Path.Combine(claudePath, ".mcp.json"), sb.ToString());
+        }
+        return claudePath;
+      }
+    } 
 
 
     public static string ResolvePath(this string path) {

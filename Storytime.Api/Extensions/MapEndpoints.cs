@@ -20,6 +20,11 @@ namespace Storytime.Api.Extensions {
         return Results.Created($"/api/item/{result?.Id??0}", result);
       }).WithName("CreateItem").WithDescription("Creates a new item.");
 
+      group.MapPost("/related", async ([AsParameters] CreateRelatedItemCommand command, IMediator mediator) => {
+        var result = await mediator.Send(command);
+        return Results.Created($"/api/item/{result?.Id??0}", result);
+      }).WithName("CreateRelatedItems").WithDescription("Creates a new item with relations.");
+
       group.MapGet("/{Id}-{IncludeRelations}", async (int Id, bool? IncludeRelations, IMediator mediator) => {
         var query = new GetItemByIdQuery(Id, IncludeRelations == null ? false : IncludeRelations.Value);
         var result = await mediator.Send(query);
@@ -101,7 +106,7 @@ namespace Storytime.Api.Extensions {
 
       group.MapPost("/", async (CreateItemRelationCommand command, IMediator mediator) => {
         var result = await mediator.Send(command);
-        return Results.Created($"/api/item-relation/{result.Id}", result);
+        return Results.Created($"/api/item-relation/{result?.Id??0}", result);
       }).WithName("CreateItemRelation").WithDescription("Creates a new item relation.");
 
       group.MapPut("/{Id}", async (int Id, UpdateItemRelationCommand command, IMediator mediator) => {

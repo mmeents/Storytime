@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using System.Threading.Tasks;
 using MCPSharp;
 using Storytime.Core.Constants;
 using Storytime.Core.Tools;
@@ -16,10 +15,12 @@ namespace Storytime.Core.Service {
       _logger = logger;
     }
     protected override async Task ExecuteAsync(CancellationToken stoppingToken) {
-      await Task.Delay(3000);
+      await Task.Delay(1500);
       _logger.LogInformation("🚀 Storytime MCP Server starting");
       DiBridgeService.Initialize(_serviceProvider);
       MCPServer.Register<StorytimeTools>();
+      MCPServer.Register<StDevTools>();
+      MCPServer.Register<StProductionTools>();
       await MCPServer.StartAsync(Cx.McpAppName, Cx.AppVersion);
     }
   }

@@ -82,6 +82,9 @@ namespace Storytime.Core.Migrations
                     b.Property<int>("ItemId")
                         .HasColumnType("int");
 
+                    b.Property<int?>("Rank")
+                        .HasColumnType("int");
+
                     b.Property<int?>("RelatedItemId")
                         .HasColumnType("int");
 
@@ -135,18 +138,6 @@ namespace Storytime.Core.Migrations
                         },
                         new
                         {
-                            Id = 2,
-                            Description = "Scene → ordered Beat (with order stored in the Beat's Data JSON)",
-                            Relation = "HasBeat"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            Description = "Beat → next Beat (optional explicit override)",
-                            Relation = "NextBeat"
-                        },
-                        new
-                        {
                             Id = 4,
                             Description = "Any item → global rule from the project bible",
                             Relation = "UsesRule"
@@ -168,6 +159,30 @@ namespace Storytime.Core.Migrations
                             Id = 7,
                             Description = "Any item → tone reference",
                             Relation = "UsesTone"
+                        },
+                        new
+                        {
+                            Id = 8,
+                            Description = "Scene → CallSheet (Director's interpretation of curated beats)",
+                            Relation = "DirectedAs"
+                        },
+                        new
+                        {
+                            Id = 9,
+                            Description = "CallSheet → Performance, or Performance → Deliverable",
+                            Relation = "Produces"
+                        },
+                        new
+                        {
+                            Id = 10,
+                            Description = "CallSheet → Character (Rank on the relation defines cast order)",
+                            Relation = "HasRole"
+                        },
+                        new
+                        {
+                            Id = 11,
+                            Description = "CallSheet → Narration (Defines the narration for a scene, with rank defining order if multiple)",
+                            Relation = "Narrates"
                         });
                 });
 
@@ -238,7 +253,100 @@ namespace Storytime.Core.Migrations
                             Id = 7,
                             Description = "Project bible rule",
                             Name = "Rule"
+                        },
+                        new
+                        {
+                            Id = 8,
+                            Description = "Project bible tone/mood reference",
+                            Name = "Tone"
+                        },
+                        new
+                        {
+                            Id = 9,
+                            Description = "Director's ordered cast sequence for a Scene",
+                            Name = "CallSheet"
+                        },
+                        new
+                        {
+                            Id = 10,
+                            Description = "Executed result of a CallSheet by character agents",
+                            Name = "Performance"
+                        },
+                        new
+                        {
+                            Id = 11,
+                            Description = "Final rendered output — prose, podcast, video, etc.",
+                            Name = "Deliverable"
+                        },
+                        new
+                        {
+                            Id = 12,
+                            Description = "Narration item for call sheets",
+                            Name = "Narration"
                         });
+                });
+
+            modelBuilder.Entity("Storytime.Core.Entities.AgentLog", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AgentName")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("ContextItemId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ErrorMessage")
+                        .HasMaxLength(-1)
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("Established")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
+
+                    b.Property<string>("RawResponse")
+                        .IsRequired()
+                        .HasMaxLength(-1)
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("Success")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("SystemPrompt")
+                        .IsRequired()
+                        .HasMaxLength(-1)
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ToolCallsSummary")
+                        .IsRequired()
+                        .HasMaxLength(-1)
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UserPrompt")
+                        .IsRequired()
+                        .HasMaxLength(-1)
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AgentName");
+
+                    b.HasIndex("ContextItemId");
+
+                    b.HasIndex("Established");
+
+                    b.HasIndex("Success");
+
+                    b.ToTable("AgentLogs", (string)null);
                 });
 
             modelBuilder.Entity("KB.Core.Entities.Item", b =>
