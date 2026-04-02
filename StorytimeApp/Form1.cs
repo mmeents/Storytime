@@ -30,13 +30,7 @@ namespace StorytimeAr {
       _logger = scope.ServiceProvider.GetRequiredService<ILogger<Form1>>();
       _appDataModuleService = scope.ServiceProvider.GetRequiredService<IAppDataModuleService>();
       InitializeComponent();
-      _logger.LogInformation("Form1 initialized.");
-      if (tabControl1.TabPages.Contains(tpItems)) {
-        tabControl1.TabPages.Remove(tpItems);
-      }
-      if (tabControl1.TabPages.Contains(tpRelations)) {
-        tabControl1.TabPages.Remove(tpRelations);
-      }
+      _logger.LogInformation("Form1 initialized.");      
       lbClaudeLaunch.Text = Cx.ClaudeExecutablePath;
     }
 
@@ -82,15 +76,8 @@ namespace StorytimeAr {
           ItemNode itemNode = item.ToItemNode();
           var tnItem = tvKb.Nodes.Add(itemNode);
           if (item.Relations.Count() > 0) {
-            foreach (var rel in item.Relations) {
-              ItemNode relationNode = new ItemNode {
-                Name = rel.Id.ToString(),
-                Text = rel.RelationTypeName,
-                Relation = rel,
-                IsRelationNode = true
-              };
-              var tnRelations = itemNode.Nodes.Add(relationNode);
-              var relatedItem = await AddNodeById(relationNode, rel.RelatedItemId);
+            foreach (var rel in item.Relations) {              
+              var relatedItem = await AddNodeById(itemNode, rel.RelatedItemId, rel);
             }
 
           }
@@ -116,26 +103,19 @@ namespace StorytimeAr {
       }
     }
 
-    private async Task<ItemNode?> AddNodeById(ItemNode parent, int? itemId) {
+    private async Task<ItemNode?> AddNodeById(ItemNode parent, int? itemId, ItemRelationDto? relation = null) {
       if (itemId == null) return null;
       var item = await _appDataModuleService.GetItemById(itemId);
       if (item != null) {
         _itemCache[item.Id] = item;
         ItemNode newNode = item.ToItemNode();
+        newNode.Relation = relation;
         parent.Nodes.Add(newNode);
 
         if (item.Relations.Count() > 0) {
-          foreach (var rel in item.Relations) {
-            ItemNode relationNode = new ItemNode {
-              Name = rel.Id.ToString(),
-              Text = rel.RelationTypeName,
-              Relation = rel,
-              IsRelationNode = true
-            };
-            var tnRelations = newNode.Nodes.Add(relationNode);
-            var relatedItem = await AddNodeById(relationNode, rel.RelatedItemId);
+          foreach (var rel in item.Relations) {                        
+            var relatedItem = await AddNodeById(newNode, rel.RelatedItemId, rel);
           }
-
         }
 
         return newNode;
@@ -262,38 +242,17 @@ namespace StorytimeAr {
     private void tvKb_AfterSelect(object sender, TreeViewEventArgs e) {
       if (e.Node != null) {
         _selectedNode = e.Node as ItemNode;
-        var itemId = (_selectedNode?.IsRelationNode ?? false) ? _selectedNode?.Relation?.Id : _selectedNode?.Item?.Id;
-        if (itemId.HasValue && _selectedNode != null) {
-          if (_selectedNode.IsRelationNode) {
-            if (tabControl1.TabPages.Contains(tpItems)) {
-              tabControl1.TabPages.Remove(tpItems);
-            }
-            if (!tabControl1.TabPages.Contains(tpRelations)) {
-              tabControl1.TabPages.Add(tpRelations);
-            }
-            tabControl1.SelectedTab = tpRelations;
+        var itemId =  _selectedNode?.Item?.Id;
+        if (itemId.HasValue && _selectedNode != null) {  
+          var parentRelation = _selectedNode?.Relation;
+          if (parentRelation != null) {
             StRelationType relationType = (StRelationType)(_selectedNode?.Relation?.RelationTypeId ?? 1);
             LoadItemsByRelationFromCache(relationType);
             SetupTpRelations();
-          } else {
-            if (!tabControl1.TabPages.Contains(tpItems)) {
-              tabControl1.TabPages.Add(tpItems);
-            }
-            SetupTpItems();
-            tabControl1.SelectedTab = tpItems;
-            if (tabControl1.TabPages.Contains(tpRelations)) {
-              tabControl1.TabPages.Remove(tpRelations);
-            }
           }
-        } else {
-          if (tabControl1.TabPages.Contains(tpItems)) {
-            tabControl1.TabPages.Remove(tpItems);
-          }
-          if (tabControl1.TabPages.Contains(tpRelations)) {
-            tabControl1.TabPages.Remove(tpRelations);
-          }
-          tabControl1.SelectedTab = tpBrowse;
-        }
+          SetupTpItems();
+
+        } 
       }
     }
 
@@ -365,13 +324,8 @@ namespace StorytimeAr {
       }
     }
 
-    private async void reloadTreeToolStripMenuItem_Click(object sender, EventArgs e) {
-      if (_selectedNode != null) {
-        await LoadProjectItems();
-
-      } else {
-        await LoadProjectItems();
-      }
+    private async void reloadTreeToolStripMenuItem_Click(object sender, EventArgs e) {      
+        await LoadProjectItems();      
     }
 
     private void edItemName_TextChanged(object sender, EventArgs e) {
@@ -616,8 +570,6 @@ namespace StorytimeAr {
       var models = await _appDataModuleService.GetLmStudioModels();
       lbLMStudioModels.Items.Clear();
       lbLMStudioModels.Items.AddRange(models.ToArray());
-      //string modelList = string.Join(Environment.NewLine, models);
-      //DoLogMessage($"Available LM Studio Models:{Environment.NewLine}{modelList}");
     }
 
     private async void btnReloadTree_Click(object sender, EventArgs e) {
@@ -683,9 +635,8 @@ namespace StorytimeAr {
       if (_selectedNode != null && _selectedNode.Item != null && _selectedNode.Item.ItemTypeId == (int)StItemType.Scene) {
         miGenerateCallSheet.Enabled = false;
         try {
-          var parentRelation = _selectedNode.Parent as ItemNode; // the contains relation node
-          var parentStory = parentRelation!.Parent as ItemNode;  // the story node
-          var storyId = parentStory!.Item!.Id;
+          var storyNode = _selectedNode.FindAncestorOfType(StItemType.Story);
+          var storyId = storyNode!.Item!.Id;
           await _appDataModuleService.GenerateCallSheetForStoryScene(storyId, _selectedNode.Item.Id);
           btnReloadTree.Visible = true;
         } catch (Exception ex) {

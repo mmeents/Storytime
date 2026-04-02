@@ -49,6 +49,7 @@
       miGenerateDeliverable = new ToolStripMenuItem();
       toolStripSeparator3 = new ToolStripSeparator();
       miDeleteItem = new ToolStripMenuItem();
+      treeList = new ImageList(components);
       tabControl1 = new TabControl();
       tpBrowse = new TabPage();
       label6 = new Label();
@@ -63,6 +64,17 @@
       edLmStudioModel = new TextBox();
       btnGetLmStudioModels = new Button();
       tpItems = new TabPage();
+      btnCancelRelation = new Button();
+      btnUpdateRelation = new Button();
+      label7 = new Label();
+      edRank = new NumericUpDown();
+      label5 = new Label();
+      label4 = new Label();
+      cbRelItem = new ComboBox();
+      cbRelRelation = new ComboBox();
+      lbRelationId = new Label();
+      lbRelItemName = new Label();
+      label1 = new Label();
       lbItemId = new Label();
       btnAbortItem = new Button();
       btnUpdateItem = new Button();
@@ -75,17 +87,6 @@
       edItemType = new ComboBox();
       edItemName = new TextBox();
       tpRelations = new TabPage();
-      label7 = new Label();
-      edRank = new NumericUpDown();
-      lbRelationId = new Label();
-      btnCancelRelation = new Button();
-      btnUpdateRelation = new Button();
-      lbRelItemName = new Label();
-      label5 = new Label();
-      label4 = new Label();
-      label1 = new Label();
-      cbRelItem = new ComboBox();
-      cbRelRelation = new ComboBox();
       ((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
       splitContainer1.Panel1.SuspendLayout();
       splitContainer1.Panel2.SuspendLayout();
@@ -98,7 +99,6 @@
       tabControl1.SuspendLayout();
       tpBrowse.SuspendLayout();
       tpItems.SuspendLayout();
-      tpRelations.SuspendLayout();
       ((System.ComponentModel.ISupportInitialize)edRank).BeginInit();
       SuspendLayout();
       // 
@@ -151,8 +151,11 @@
       // 
       tvKb.ContextMenuStrip = cmsTreeview;
       tvKb.Dock = DockStyle.Fill;
+      tvKb.ImageIndex = 0;
+      tvKb.ImageList = treeList;
       tvKb.Location = new Point(0, 0);
       tvKb.Name = "tvKb";
+      tvKb.SelectedImageIndex = 0;
       tvKb.Size = new Size(280, 471);
       tvKb.TabIndex = 0;
       tvKb.AfterSelect += tvKb_AfterSelect;
@@ -290,6 +293,25 @@
       miDeleteItem.Size = new Size(194, 22);
       miDeleteItem.Text = "Delete Item";
       miDeleteItem.Click += miDeleteItem_Click;
+      // 
+      // treeList
+      // 
+      treeList.ColorDepth = ColorDepth.Depth32Bit;
+      treeList.ImageStream = (ImageListStreamer)resources.GetObject("treeList.ImageStream");
+      treeList.TransparentColor = Color.Transparent;
+      treeList.Images.SetKeyName(0, "transparent.png");
+      treeList.Images.SetKeyName(1, "folder.png");
+      treeList.Images.SetKeyName(2, "story.png");
+      treeList.Images.SetKeyName(3, "scene.png");
+      treeList.Images.SetKeyName(4, "beat.png");
+      treeList.Images.SetKeyName(5, "character.png");
+      treeList.Images.SetKeyName(6, "location.png");
+      treeList.Images.SetKeyName(7, "rule.png");
+      treeList.Images.SetKeyName(8, "tone.png");
+      treeList.Images.SetKeyName(9, "callsheet.png");
+      treeList.Images.SetKeyName(10, "performance.png");
+      treeList.Images.SetKeyName(11, "deliverable.png");
+      treeList.Images.SetKeyName(12, "narration.png");
       // 
       // tabControl1
       // 
@@ -438,6 +460,17 @@
       // 
       // tpItems
       // 
+      tpItems.Controls.Add(btnCancelRelation);
+      tpItems.Controls.Add(btnUpdateRelation);
+      tpItems.Controls.Add(label7);
+      tpItems.Controls.Add(edRank);
+      tpItems.Controls.Add(label5);
+      tpItems.Controls.Add(label4);
+      tpItems.Controls.Add(cbRelItem);
+      tpItems.Controls.Add(cbRelRelation);
+      tpItems.Controls.Add(lbRelationId);
+      tpItems.Controls.Add(lbRelItemName);
+      tpItems.Controls.Add(label1);
       tpItems.Controls.Add(lbItemId);
       tpItems.Controls.Add(btnAbortItem);
       tpItems.Controls.Add(btnUpdateItem);
@@ -457,11 +490,108 @@
       tpItems.Text = "Items";
       tpItems.UseVisualStyleBackColor = true;
       // 
+      // btnCancelRelation
+      // 
+      btnCancelRelation.Location = new Point(227, 9);
+      btnCancelRelation.Name = "btnCancelRelation";
+      btnCancelRelation.Size = new Size(75, 23);
+      btnCancelRelation.TabIndex = 22;
+      btnCancelRelation.Text = "Cancel";
+      btnCancelRelation.UseVisualStyleBackColor = true;
+      // 
+      // btnUpdateRelation
+      // 
+      btnUpdateRelation.Location = new Point(146, 8);
+      btnUpdateRelation.Name = "btnUpdateRelation";
+      btnUpdateRelation.Size = new Size(75, 23);
+      btnUpdateRelation.TabIndex = 21;
+      btnUpdateRelation.Text = "Update";
+      btnUpdateRelation.UseVisualStyleBackColor = true;
+      // 
+      // label7
+      // 
+      label7.AutoSize = true;
+      label7.Location = new Point(6, 64);
+      label7.Name = "label7";
+      label7.Size = new Size(66, 15);
+      label7.TabIndex = 20;
+      label7.Text = "Rank Order";
+      // 
+      // edRank
+      // 
+      edRank.Location = new Point(83, 62);
+      edRank.Maximum = new decimal(new int[] { 10000, 0, 0, 0 });
+      edRank.Name = "edRank";
+      edRank.Size = new Size(120, 23);
+      edRank.TabIndex = 19;
+      // 
+      // label5
+      // 
+      label5.AutoSize = true;
+      label5.Location = new Point(-1, 123);
+      label5.Name = "label5";
+      label5.Size = new Size(75, 15);
+      label5.TabIndex = 18;
+      label5.Text = "Existing Item";
+      // 
+      // label4
+      // 
+      label4.AutoSize = true;
+      label4.Location = new Point(22, 94);
+      label4.Name = "label4";
+      label4.Size = new Size(50, 15);
+      label4.TabIndex = 17;
+      label4.Text = "Relation";
+      // 
+      // cbRelItem
+      // 
+      cbRelItem.FormattingEnabled = true;
+      cbRelItem.Location = new Point(83, 120);
+      cbRelItem.Name = "cbRelItem";
+      cbRelItem.Size = new Size(350, 23);
+      cbRelItem.TabIndex = 16;
+      // 
+      // cbRelRelation
+      // 
+      cbRelRelation.FormattingEnabled = true;
+      cbRelRelation.Location = new Point(83, 91);
+      cbRelRelation.Name = "cbRelRelation";
+      cbRelRelation.Size = new Size(350, 23);
+      cbRelRelation.TabIndex = 15;
+      // 
+      // lbRelationId
+      // 
+      lbRelationId.AutoSize = true;
+      lbRelationId.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
+      lbRelationId.Location = new Point(6, 8);
+      lbRelationId.Name = "lbRelationId";
+      lbRelationId.Size = new Size(94, 21);
+      lbRelationId.TabIndex = 14;
+      lbRelationId.Text = "RelationId: x";
+      // 
+      // lbRelItemName
+      // 
+      lbRelItemName.AutoSize = true;
+      lbRelItemName.Location = new Point(83, 44);
+      lbRelItemName.Name = "lbRelItemName";
+      lbRelItemName.Size = new Size(66, 15);
+      lbRelItemName.TabIndex = 13;
+      lbRelItemName.Text = "Item Name";
+      // 
+      // label1
+      // 
+      label1.AutoSize = true;
+      label1.Location = new Point(29, 44);
+      label1.Name = "label1";
+      label1.Size = new Size(41, 15);
+      label1.TabIndex = 12;
+      label1.Text = "Parent";
+      // 
       // lbItemId
       // 
       lbItemId.AutoSize = true;
       lbItemId.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
-      lbItemId.Location = new Point(20, 16);
+      lbItemId.Location = new Point(21, 165);
       lbItemId.Name = "lbItemId";
       lbItemId.Size = new Size(68, 21);
       lbItemId.TabIndex = 10;
@@ -469,7 +599,7 @@
       // 
       // btnAbortItem
       // 
-      btnAbortItem.Location = new Point(226, 14);
+      btnAbortItem.Location = new Point(227, 163);
       btnAbortItem.Name = "btnAbortItem";
       btnAbortItem.Size = new Size(75, 23);
       btnAbortItem.TabIndex = 9;
@@ -479,7 +609,7 @@
       // 
       // btnUpdateItem
       // 
-      btnUpdateItem.Location = new Point(145, 14);
+      btnUpdateItem.Location = new Point(146, 163);
       btnUpdateItem.Name = "btnUpdateItem";
       btnUpdateItem.Size = new Size(75, 23);
       btnUpdateItem.TabIndex = 8;
@@ -490,7 +620,7 @@
       // label3
       // 
       label3.AutoSize = true;
-      label3.Location = new Point(38, 293);
+      label3.Location = new Point(29, 343);
       label3.Name = "label3";
       label3.Size = new Size(31, 15);
       label3.TabIndex = 7;
@@ -499,7 +629,7 @@
       // label2
       // 
       label2.AutoSize = true;
-      label2.Location = new Point(2, 112);
+      label2.Location = new Point(0, 261);
       label2.Name = "label2";
       label2.Size = new Size(67, 15);
       label2.TabIndex = 6;
@@ -508,7 +638,7 @@
       // lbType
       // 
       lbType.AutoSize = true;
-      lbType.Location = new Point(40, 80);
+      lbType.Location = new Point(41, 229);
       lbType.Name = "lbType";
       lbType.Size = new Size(31, 15);
       lbType.TabIndex = 5;
@@ -517,7 +647,7 @@
       // lbItemName
       // 
       lbItemName.AutoSize = true;
-      lbItemName.Location = new Point(32, 51);
+      lbItemName.Location = new Point(33, 200);
       lbItemName.Name = "lbItemName";
       lbItemName.Size = new Size(39, 15);
       lbItemName.TabIndex = 4;
@@ -526,22 +656,22 @@
       // edItemData
       // 
       edItemData.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-      edItemData.Location = new Point(76, 290);
+      edItemData.Location = new Point(76, 340);
       edItemData.Multiline = true;
       edItemData.Name = "edItemData";
       edItemData.ScrollBars = ScrollBars.Both;
-      edItemData.Size = new Size(465, 213);
+      edItemData.Size = new Size(465, 163);
       edItemData.TabIndex = 3;
       edItemData.TextChanged += edItemName_TextChanged;
       // 
       // edItemDesc
       // 
       edItemDesc.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-      edItemDesc.Location = new Point(76, 109);
+      edItemDesc.Location = new Point(76, 261);
       edItemDesc.Multiline = true;
       edItemDesc.Name = "edItemDesc";
       edItemDesc.ScrollBars = ScrollBars.Both;
-      edItemDesc.Size = new Size(465, 175);
+      edItemDesc.Size = new Size(465, 73);
       edItemDesc.TabIndex = 2;
       edItemDesc.TextChanged += edItemName_TextChanged;
       // 
@@ -549,7 +679,7 @@
       // 
       edItemType.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
       edItemType.FormattingEnabled = true;
-      edItemType.Location = new Point(76, 77);
+      edItemType.Location = new Point(77, 226);
       edItemType.Name = "edItemType";
       edItemType.Size = new Size(465, 23);
       edItemType.TabIndex = 1;
@@ -558,7 +688,7 @@
       // edItemName
       // 
       edItemName.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-      edItemName.Location = new Point(76, 48);
+      edItemName.Location = new Point(77, 197);
       edItemName.Name = "edItemName";
       edItemName.Size = new Size(465, 23);
       edItemName.TabIndex = 0;
@@ -566,126 +696,13 @@
       // 
       // tpRelations
       // 
-      tpRelations.Controls.Add(label7);
-      tpRelations.Controls.Add(edRank);
-      tpRelations.Controls.Add(lbRelationId);
-      tpRelations.Controls.Add(btnCancelRelation);
-      tpRelations.Controls.Add(btnUpdateRelation);
-      tpRelations.Controls.Add(lbRelItemName);
-      tpRelations.Controls.Add(label5);
-      tpRelations.Controls.Add(label4);
-      tpRelations.Controls.Add(label1);
-      tpRelations.Controls.Add(cbRelItem);
-      tpRelations.Controls.Add(cbRelRelation);
       tpRelations.Location = new Point(4, 24);
       tpRelations.Name = "tpRelations";
       tpRelations.Padding = new Padding(3);
       tpRelations.Size = new Size(549, 511);
       tpRelations.TabIndex = 1;
-      tpRelations.Text = "Relation";
+      tpRelations.Text = "Factory Floor";
       tpRelations.UseVisualStyleBackColor = true;
-      // 
-      // label7
-      // 
-      label7.AutoSize = true;
-      label7.Location = new Point(56, 88);
-      label7.Name = "label7";
-      label7.Size = new Size(66, 15);
-      label7.TabIndex = 13;
-      label7.Text = "Rank Order";
-      // 
-      // edRank
-      // 
-      edRank.Location = new Point(146, 86);
-      edRank.Maximum = new decimal(new int[] { 10000, 0, 0, 0 });
-      edRank.Name = "edRank";
-      edRank.Size = new Size(120, 23);
-      edRank.TabIndex = 12;
-      edRank.ValueChanged += cbRelItem_SelectedIndexChanged;
-      // 
-      // lbRelationId
-      // 
-      lbRelationId.AutoSize = true;
-      lbRelationId.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
-      lbRelationId.Location = new Point(27, 22);
-      lbRelationId.Name = "lbRelationId";
-      lbRelationId.Size = new Size(94, 21);
-      lbRelationId.TabIndex = 11;
-      lbRelationId.Text = "RelationId: x";
-      // 
-      // btnCancelRelation
-      // 
-      btnCancelRelation.Location = new Point(192, 228);
-      btnCancelRelation.Name = "btnCancelRelation";
-      btnCancelRelation.Size = new Size(75, 23);
-      btnCancelRelation.TabIndex = 7;
-      btnCancelRelation.Text = "Cancel";
-      btnCancelRelation.UseVisualStyleBackColor = true;
-      btnCancelRelation.Click += btnCancelRelation_Click;
-      // 
-      // btnUpdateRelation
-      // 
-      btnUpdateRelation.Location = new Point(95, 228);
-      btnUpdateRelation.Name = "btnUpdateRelation";
-      btnUpdateRelation.Size = new Size(75, 23);
-      btnUpdateRelation.TabIndex = 6;
-      btnUpdateRelation.Text = "Update";
-      btnUpdateRelation.UseVisualStyleBackColor = true;
-      btnUpdateRelation.Click += btnUpdateRelation_Click;
-      // 
-      // lbRelItemName
-      // 
-      lbRelItemName.AutoSize = true;
-      lbRelItemName.Location = new Point(143, 63);
-      lbRelItemName.Name = "lbRelItemName";
-      lbRelItemName.Size = new Size(66, 15);
-      lbRelItemName.TabIndex = 5;
-      lbRelItemName.Text = "Item Name";
-      // 
-      // label5
-      // 
-      label5.AutoSize = true;
-      label5.Location = new Point(49, 147);
-      label5.Name = "label5";
-      label5.Size = new Size(75, 15);
-      label5.TabIndex = 4;
-      label5.Text = "Existing Item";
-      // 
-      // label4
-      // 
-      label4.AutoSize = true;
-      label4.Location = new Point(73, 118);
-      label4.Name = "label4";
-      label4.Size = new Size(50, 15);
-      label4.TabIndex = 3;
-      label4.Text = "Relation";
-      // 
-      // label1
-      // 
-      label1.AutoSize = true;
-      label1.Location = new Point(70, 63);
-      label1.Name = "label1";
-      label1.Size = new Size(51, 15);
-      label1.TabIndex = 2;
-      label1.Text = "Selected";
-      // 
-      // cbRelItem
-      // 
-      cbRelItem.FormattingEnabled = true;
-      cbRelItem.Location = new Point(146, 144);
-      cbRelItem.Name = "cbRelItem";
-      cbRelItem.Size = new Size(350, 23);
-      cbRelItem.TabIndex = 1;
-      cbRelItem.SelectedIndexChanged += cbRelItem_SelectedIndexChanged;
-      // 
-      // cbRelRelation
-      // 
-      cbRelRelation.FormattingEnabled = true;
-      cbRelRelation.Location = new Point(146, 115);
-      cbRelRelation.Name = "cbRelRelation";
-      cbRelRelation.Size = new Size(350, 23);
-      cbRelRelation.TabIndex = 0;
-      cbRelRelation.SelectedIndexChanged += cbRelRelation_SelectedIndexChanged;
       // 
       // Form1
       // 
@@ -711,8 +728,6 @@
       tpBrowse.PerformLayout();
       tpItems.ResumeLayout(false);
       tpItems.PerformLayout();
-      tpRelations.ResumeLayout(false);
-      tpRelations.PerformLayout();
       ((System.ComponentModel.ISupportInitialize)edRank).EndInit();
       ResumeLayout(false);
     }
@@ -747,16 +762,7 @@
     private ToolStripMenuItem miAddLocation;
     private ToolStripMenuItem miAddRule;
     private ToolStripMenuItem miAddRefCharacter;
-    private ComboBox cbRelItem;
-    private ComboBox cbRelRelation;
-    private Button btnCancelRelation;
-    private Button btnUpdateRelation;
-    private Label lbRelItemName;
-    private Label label5;
-    private Label label4;
-    private Label label1;
     private Label lbItemId;
-    private Label lbRelationId;
     private ToolStripSeparator toolStripSeparator2;
     private ToolStripMenuItem miDeleteItem;
     private Button btnGetLmStudioModels;
@@ -767,8 +773,6 @@
     private ToolStripSeparator toolStripSeparator3;
     private ToolStripMenuItem miGenerateScene;
     private ToolStripMenuItem miGenerateBeat;
-    private Label label7;
-    private NumericUpDown edRank;
     private ToolStripMenuItem miGenerateCallSheet;
     private ToolStripMenuItem miGeneratePerformance;
     private ToolStripMenuItem miGenerateDeliverable;
@@ -780,5 +784,17 @@
     private ListBox lbLMStudioModels;
     private Label label6;
     private TextBox tbTestOut;
+    private Label label7;
+    private NumericUpDown edRank;
+    private Label label5;
+    private Label label4;
+    private ComboBox cbRelItem;
+    private ComboBox cbRelRelation;
+    private Label lbRelationId;
+    private Label lbRelItemName;
+    private Label label1;
+    private Button btnCancelRelation;
+    private Button btnUpdateRelation;
+    private ImageList treeList;
   }
 }

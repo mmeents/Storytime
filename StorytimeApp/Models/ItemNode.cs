@@ -20,6 +20,8 @@ namespace StorytimeAr.Models {
     public static ItemNode ToItemNode(this ItemDto item) {
       var node = new ItemNode {
         Name = item.Id.ToString(),
+        ImageIndex = item.ItemTypeId,
+        SelectedImageIndex = item.ItemTypeId,
         Text = item.Name,
         Item = item,
         IsRelationNode = false

@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Storytime.Core.Handlers.Items {
   
   public record GetItemByIdQuery(int Id, bool IncludeRelations = false) : IRequest<ItemDto?>;
+
   public class GetItemByIdQueryHandler : IRequestHandler<GetItemByIdQuery, ItemDto?> {
     private readonly StorytimeDbContext _context;
     public GetItemByIdQueryHandler(StorytimeDbContext context) {
