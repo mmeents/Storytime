@@ -17,6 +17,8 @@ namespace StorytimeAr.Models {
   }
 
   public static class ItemNodeExt {
+
+    // special case project.
     public static ItemNode ToItemNode(this ItemDto item) {
       var node = new ItemNode {
         Name = item.Id.ToString(),
@@ -28,16 +30,21 @@ namespace StorytimeAr.Models {
       };
       return node;
     }
-    public static ItemNode ToItemNode(this ItemRelationDto relation) {
+
+    // general case 
+    public static ItemNode ToItemNode(this ItemRelationDto relation, ItemDto item) {
       var node = new ItemNode {
-        Name = relation.Id.ToString(),
-        Text = relation.RelationTypeName,
+        Name = item.Id.ToString(),
+        ImageIndex = item.ItemTypeId,
+        SelectedImageIndex = item.ItemTypeId,
+        Text = item.Name,
+        Item = item,
         Relation = relation,
         IsRelationNode = true
       };
       return node;
-
     }
+    
     public static ItemNode? FindAncestorOfType(this ItemNode node, StItemType itemType) {
       var current = node.Parent as ItemNode;
       while (current != null) {

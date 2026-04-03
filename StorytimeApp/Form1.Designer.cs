@@ -37,7 +37,6 @@
       miAddScene = new ToolStripMenuItem();
       miAddBeat = new ToolStripMenuItem();
       miAddCharacter = new ToolStripMenuItem();
-      miAddRefCharacter = new ToolStripMenuItem();
       miAddLocation = new ToolStripMenuItem();
       miAddRule = new ToolStripMenuItem();
       toolStripSeparator2 = new ToolStripSeparator();
@@ -68,9 +67,8 @@
       btnUpdateRelation = new Button();
       label7 = new Label();
       edRank = new NumericUpDown();
-      label5 = new Label();
       label4 = new Label();
-      cbRelItem = new ComboBox();
+      cbRelParentItem = new ComboBox();
       cbRelRelation = new ComboBox();
       lbRelationId = new Label();
       lbRelItemName = new Label();
@@ -87,6 +85,7 @@
       edItemType = new ComboBox();
       edItemName = new TextBox();
       tpRelations = new TabPage();
+      miDuplicateItem = new ToolStripMenuItem();
       ((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
       splitContainer1.Panel1.SuspendLayout();
       splitContainer1.Panel2.SuspendLayout();
@@ -149,6 +148,7 @@
       // 
       // tvKb
       // 
+      tvKb.AllowDrop = true;
       tvKb.ContextMenuStrip = cmsTreeview;
       tvKb.Dock = DockStyle.Fill;
       tvKb.ImageIndex = 0;
@@ -158,139 +158,136 @@
       tvKb.SelectedImageIndex = 0;
       tvKb.Size = new Size(280, 471);
       tvKb.TabIndex = 0;
+      tvKb.ItemDrag += tvKb_ItemDrag;
       tvKb.AfterSelect += tvKb_AfterSelect;
+      tvKb.DragDrop += tvKb_DragDrop;
+      tvKb.DragEnter += tvKb_DragEnter;
+      tvKb.DragOver += tvKb_DragOver;
       // 
       // cmsTreeview
       // 
-      cmsTreeview.Items.AddRange(new ToolStripItem[] { reloadTreeToolStripMenuItem, toolStripSeparator1, miAddProject, miAddStory, miAddScene, miAddBeat, miAddCharacter, miAddRefCharacter, miAddLocation, miAddRule, toolStripSeparator2, miGenerateStory, miGenerateScene, miGenerateBeat, miGenerateCallSheet, miGeneratePerformance, miGenerateDeliverable, toolStripSeparator3, miDeleteItem });
+      cmsTreeview.Items.AddRange(new ToolStripItem[] { reloadTreeToolStripMenuItem, toolStripSeparator1, miAddProject, miAddStory, miAddScene, miAddBeat, miAddCharacter, miAddLocation, miAddRule, miDuplicateItem, toolStripSeparator2, miGenerateStory, miGenerateScene, miGenerateBeat, miGenerateCallSheet, miGeneratePerformance, miGenerateDeliverable, toolStripSeparator3, miDeleteItem });
       cmsTreeview.Name = "cmsTreeview";
-      cmsTreeview.Size = new Size(195, 374);
+      cmsTreeview.Size = new Size(193, 396);
       cmsTreeview.Opening += cmsTreeview_Opening;
       // 
       // reloadTreeToolStripMenuItem
       // 
       reloadTreeToolStripMenuItem.Name = "reloadTreeToolStripMenuItem";
-      reloadTreeToolStripMenuItem.Size = new Size(194, 22);
+      reloadTreeToolStripMenuItem.Size = new Size(192, 22);
       reloadTreeToolStripMenuItem.Text = "Reload Tree";
       reloadTreeToolStripMenuItem.Click += reloadTreeToolStripMenuItem_Click;
       // 
       // toolStripSeparator1
       // 
       toolStripSeparator1.Name = "toolStripSeparator1";
-      toolStripSeparator1.Size = new Size(191, 6);
+      toolStripSeparator1.Size = new Size(189, 6);
       // 
       // miAddProject
       // 
       miAddProject.Name = "miAddProject";
-      miAddProject.Size = new Size(194, 22);
+      miAddProject.Size = new Size(192, 22);
       miAddProject.Text = "Add Project";
       miAddProject.Click += miAddProject_Click;
       // 
       // miAddStory
       // 
       miAddStory.Name = "miAddStory";
-      miAddStory.Size = new Size(194, 22);
+      miAddStory.Size = new Size(192, 22);
       miAddStory.Text = "Add Story";
       miAddStory.Click += miAddStory_Click;
       // 
       // miAddScene
       // 
       miAddScene.Name = "miAddScene";
-      miAddScene.Size = new Size(194, 22);
+      miAddScene.Size = new Size(192, 22);
       miAddScene.Text = "Add Scene";
       miAddScene.Click += miAddScene_Click;
       // 
       // miAddBeat
       // 
       miAddBeat.Name = "miAddBeat";
-      miAddBeat.Size = new Size(194, 22);
+      miAddBeat.Size = new Size(192, 22);
       miAddBeat.Text = "Add Beat";
       miAddBeat.Click += miAddBeat_Click;
       // 
       // miAddCharacter
       // 
       miAddCharacter.Name = "miAddCharacter";
-      miAddCharacter.Size = new Size(194, 22);
+      miAddCharacter.Size = new Size(192, 22);
       miAddCharacter.Text = "Add Character";
       miAddCharacter.Click += miAddCharacter_Click;
-      // 
-      // miAddRefCharacter
-      // 
-      miAddRefCharacter.Name = "miAddRefCharacter";
-      miAddRefCharacter.Size = new Size(194, 22);
-      miAddRefCharacter.Text = "Add Existing Character";
-      miAddRefCharacter.Click += miAddRefCharacter_Click;
       // 
       // miAddLocation
       // 
       miAddLocation.Name = "miAddLocation";
-      miAddLocation.Size = new Size(194, 22);
+      miAddLocation.Size = new Size(192, 22);
       miAddLocation.Text = "Add Location";
       miAddLocation.Click += miAddLocation_Click;
       // 
       // miAddRule
       // 
       miAddRule.Name = "miAddRule";
-      miAddRule.Size = new Size(194, 22);
+      miAddRule.Size = new Size(192, 22);
       miAddRule.Text = "Add Rule";
       miAddRule.Click += miAddRule_Click;
       // 
       // toolStripSeparator2
       // 
       toolStripSeparator2.Name = "toolStripSeparator2";
-      toolStripSeparator2.Size = new Size(191, 6);
+      toolStripSeparator2.Size = new Size(189, 6);
       // 
       // miGenerateStory
       // 
       miGenerateStory.Name = "miGenerateStory";
-      miGenerateStory.Size = new Size(194, 22);
+      miGenerateStory.Size = new Size(192, 22);
       miGenerateStory.Text = "Generate Story";
       miGenerateStory.Click += miGenerateStory_Click;
       // 
       // miGenerateScene
       // 
       miGenerateScene.Name = "miGenerateScene";
-      miGenerateScene.Size = new Size(194, 22);
+      miGenerateScene.Size = new Size(192, 22);
       miGenerateScene.Text = "Generate Scene";
       miGenerateScene.Click += miGenerateScene_Click;
       // 
       // miGenerateBeat
       // 
       miGenerateBeat.Name = "miGenerateBeat";
-      miGenerateBeat.Size = new Size(194, 22);
+      miGenerateBeat.Size = new Size(192, 22);
       miGenerateBeat.Text = "Generate Beat Set";
       miGenerateBeat.Click += miGenerateBeat_Click;
       // 
       // miGenerateCallSheet
       // 
       miGenerateCallSheet.Name = "miGenerateCallSheet";
-      miGenerateCallSheet.Size = new Size(194, 22);
+      miGenerateCallSheet.Size = new Size(192, 22);
       miGenerateCallSheet.Text = "Generate CallSheet";
       miGenerateCallSheet.Click += miGenerateCallSheet_Click;
       // 
       // miGeneratePerformance
       // 
       miGeneratePerformance.Name = "miGeneratePerformance";
-      miGeneratePerformance.Size = new Size(194, 22);
+      miGeneratePerformance.Size = new Size(192, 22);
       miGeneratePerformance.Text = "Generate Performance";
       miGeneratePerformance.Click += miGeneratePerformance_Click;
       // 
       // miGenerateDeliverable
       // 
       miGenerateDeliverable.Name = "miGenerateDeliverable";
-      miGenerateDeliverable.Size = new Size(194, 22);
+      miGenerateDeliverable.Size = new Size(192, 22);
       miGenerateDeliverable.Text = "Generate Deliverable";
       miGenerateDeliverable.Click += miGenerateDeliverable_Click;
       // 
       // toolStripSeparator3
       // 
       toolStripSeparator3.Name = "toolStripSeparator3";
-      toolStripSeparator3.Size = new Size(191, 6);
+      toolStripSeparator3.Size = new Size(189, 6);
       // 
       // miDeleteItem
       // 
       miDeleteItem.Name = "miDeleteItem";
-      miDeleteItem.Size = new Size(194, 22);
+      miDeleteItem.Size = new Size(192, 22);
       miDeleteItem.Text = "Delete Item";
       miDeleteItem.Click += miDeleteItem_Click;
       // 
@@ -464,9 +461,8 @@
       tpItems.Controls.Add(btnUpdateRelation);
       tpItems.Controls.Add(label7);
       tpItems.Controls.Add(edRank);
-      tpItems.Controls.Add(label5);
       tpItems.Controls.Add(label4);
-      tpItems.Controls.Add(cbRelItem);
+      tpItems.Controls.Add(cbRelParentItem);
       tpItems.Controls.Add(cbRelRelation);
       tpItems.Controls.Add(lbRelationId);
       tpItems.Controls.Add(lbRelItemName);
@@ -511,7 +507,7 @@
       // label7
       // 
       label7.AutoSize = true;
-      label7.Location = new Point(6, 64);
+      label7.Location = new Point(6, 89);
       label7.Name = "label7";
       label7.Size = new Size(66, 15);
       label7.TabIndex = 20;
@@ -519,45 +515,40 @@
       // 
       // edRank
       // 
-      edRank.Location = new Point(83, 62);
+      edRank.Location = new Point(83, 87);
       edRank.Maximum = new decimal(new int[] { 10000, 0, 0, 0 });
       edRank.Name = "edRank";
       edRank.Size = new Size(120, 23);
       edRank.TabIndex = 19;
-      // 
-      // label5
-      // 
-      label5.AutoSize = true;
-      label5.Location = new Point(-1, 123);
-      label5.Name = "label5";
-      label5.Size = new Size(75, 15);
-      label5.TabIndex = 18;
-      label5.Text = "Existing Item";
+      edRank.ValueChanged += cbRelItem_SelectedIndexChanged;
       // 
       // label4
       // 
       label4.AutoSize = true;
-      label4.Location = new Point(22, 94);
+      label4.Location = new Point(22, 119);
       label4.Name = "label4";
       label4.Size = new Size(50, 15);
       label4.TabIndex = 17;
       label4.Text = "Relation";
       // 
-      // cbRelItem
+      // cbRelParentItem
       // 
-      cbRelItem.FormattingEnabled = true;
-      cbRelItem.Location = new Point(83, 120);
-      cbRelItem.Name = "cbRelItem";
-      cbRelItem.Size = new Size(350, 23);
-      cbRelItem.TabIndex = 16;
+      cbRelParentItem.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+      cbRelParentItem.FormattingEnabled = true;
+      cbRelParentItem.Location = new Point(83, 60);
+      cbRelParentItem.Name = "cbRelParentItem";
+      cbRelParentItem.Size = new Size(458, 23);
+      cbRelParentItem.TabIndex = 16;
+      cbRelParentItem.SelectedIndexChanged += cbRelItem_SelectedIndexChanged;
       // 
       // cbRelRelation
       // 
       cbRelRelation.FormattingEnabled = true;
-      cbRelRelation.Location = new Point(83, 91);
+      cbRelRelation.Location = new Point(83, 116);
       cbRelRelation.Name = "cbRelRelation";
-      cbRelRelation.Size = new Size(350, 23);
+      cbRelRelation.Size = new Size(120, 23);
       cbRelRelation.TabIndex = 15;
+      cbRelRelation.SelectedIndexChanged += cbRelRelation_SelectedIndexChanged;
       // 
       // lbRelationId
       // 
@@ -572,7 +563,7 @@
       // lbRelItemName
       // 
       lbRelItemName.AutoSize = true;
-      lbRelItemName.Location = new Point(83, 44);
+      lbRelItemName.Location = new Point(86, 40);
       lbRelItemName.Name = "lbRelItemName";
       lbRelItemName.Size = new Size(66, 15);
       lbRelItemName.TabIndex = 13;
@@ -704,6 +695,13 @@
       tpRelations.Text = "Factory Floor";
       tpRelations.UseVisualStyleBackColor = true;
       // 
+      // miDuplicateItem
+      // 
+      miDuplicateItem.Name = "miDuplicateItem";
+      miDuplicateItem.Size = new Size(192, 22);
+      miDuplicateItem.Text = "Duplicate Item";
+      miDuplicateItem.Click += miDuplicateItem_Click;
+      // 
       // Form1
       // 
       AutoScaleDimensions = new SizeF(7F, 15F);
@@ -761,7 +759,6 @@
     private ToolStripMenuItem miAddCharacter;
     private ToolStripMenuItem miAddLocation;
     private ToolStripMenuItem miAddRule;
-    private ToolStripMenuItem miAddRefCharacter;
     private Label lbItemId;
     private ToolStripSeparator toolStripSeparator2;
     private ToolStripMenuItem miDeleteItem;
@@ -786,9 +783,8 @@
     private TextBox tbTestOut;
     private Label label7;
     private NumericUpDown edRank;
-    private Label label5;
     private Label label4;
-    private ComboBox cbRelItem;
+    private ComboBox cbRelParentItem;
     private ComboBox cbRelRelation;
     private Label lbRelationId;
     private Label lbRelItemName;
@@ -796,5 +792,6 @@
     private Button btnCancelRelation;
     private Button btnUpdateRelation;
     private ImageList treeList;
+    private ToolStripMenuItem miDuplicateItem;
   }
 }

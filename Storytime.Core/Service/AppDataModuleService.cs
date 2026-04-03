@@ -77,7 +77,8 @@ namespace Storytime.Core.Service {
       var context = GetDbContext();
 
       var query = context.Items        
-        .Where(i => i.ItemTypeId == (int)StItemType.Project && i.IsActive)
+        .Where(i => i.ItemTypeId == (int)StItemType.Project && i.IsActive 
+          && !i.IncomingRelations.Any(r => r.Item.ItemTypeId == (int)StItemType.Project))
         .Include(i => i.ItemType)
             .Include(i => i.Relations)
                 .ThenInclude(r => r.RelatedItem)

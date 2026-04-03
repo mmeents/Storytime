@@ -1,9 +1,12 @@
+using KB.Core.Entities;
 using KB.Core.Models;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using Storytime.Core;
+using Storytime.Core.Agents;
+using Storytime.Core.Constants;
 using Storytime.Core.Service;
 using StorytimeAr.Models;
 using System.ComponentModel;
@@ -12,8 +15,6 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Controls.Primitives;
 using System.Windows.Forms;
-using Storytime.Core.Constants;
-using Storytime.Core.Agents;
 
 
 namespace StorytimeAr {
@@ -30,25 +31,13 @@ namespace StorytimeAr {
       _logger = scope.ServiceProvider.GetRequiredService<ILogger<Form1>>();
       _appDataModuleService = scope.ServiceProvider.GetRequiredService<IAppDataModuleService>();
       InitializeComponent();
-      _logger.LogInformation("Form1 initialized.");      
+      _logger.LogInformation("Form1 initialized.");
       lbClaudeLaunch.Text = Cx.ClaudeExecutablePath;
     }
 
-    delegate void LogMessageDelegate(string message);
-    private void DoLogMessage(string message) {
-      if (this.InvokeRequired) {
-        this.Invoke(new LogMessageDelegate(DoLogMessage), new object[] { message });
-      } else {
-        StringBuilder sb = new StringBuilder();
-        sb.AppendLine($"[{DateTime.Now:HH:mm:ss}] {message}");
-        sb.Append(tbTestOut.Text);
-        string finalMessage = sb.ToString();
-        if (finalMessage.Length > 10000) {
-          finalMessage = finalMessage.Substring(0, 10000); // Keep only the last 10,000 characters
-        }
-        tbTestOut.Text = finalMessage;
-        _logger.LogInformation(message);
-      }
+    #region TreeView Loading and Setup
+    private async void Form1_Shown(object sender, EventArgs e) {
+      await LoadProjectItems();
     }
 
     private async Task LoadProjectItems() {
@@ -76,7 +65,7 @@ namespace StorytimeAr {
           ItemNode itemNode = item.ToItemNode();
           var tnItem = tvKb.Nodes.Add(itemNode);
           if (item.Relations.Count() > 0) {
-            foreach (var rel in item.Relations) {              
+            foreach (var rel in item.Relations) {
               var relatedItem = await AddNodeById(itemNode, rel.RelatedItemId, rel);
             }
 
@@ -108,12 +97,10 @@ namespace StorytimeAr {
       var item = await _appDataModuleService.GetItemById(itemId);
       if (item != null) {
         _itemCache[item.Id] = item;
-        ItemNode newNode = item.ToItemNode();
-        newNode.Relation = relation;
+        ItemNode newNode = relation == null ? item.ToItemNode() : relation.ToItemNode(item);
         parent.Nodes.Add(newNode);
-
         if (item.Relations.Count() > 0) {
-          foreach (var rel in item.Relations) {                        
+          foreach (var rel in item.Relations) {
             var relatedItem = await AddNodeById(newNode, rel.RelatedItemId, rel);
           }
         }
@@ -163,87 +150,22 @@ namespace StorytimeAr {
         .Where(i => allowedItemTypes.Contains((StItemType)i.ItemTypeId))
         .ToList();
       _inSetupTpRelations = true;
-      cbRelItem.DataSource = filtered;
-      cbRelItem.DisplayMember = "Name";
-      cbRelItem.ValueMember = "Id";
+      cbRelParentItem.DataSource = filtered;
+      cbRelParentItem.DisplayMember = "Name";
+      cbRelParentItem.ValueMember = "Id";
       _inSetupTpRelations = false;
     }
 
+    #endregion
 
-
-    private async void Form1_Shown(object sender, EventArgs e) {
-      await LoadProjectItems();
-
-    }
-
-    private void cmsTreeview_Opening(object sender, System.ComponentModel.CancelEventArgs e) {
-      if (_selectedNode == null) {
-        e.Cancel = true; // No node selected, cancel the context menu
-        return;
-      } else {
-        if (_selectedNode.IsRelationNode) {
-          miAddProject.Visible = false;
-          miAddStory.Visible = false;
-          miAddScene.Visible = false;
-          miAddBeat.Visible = false;
-          miAddCharacter.Visible = false;
-          miAddLocation.Visible = false;
-          miAddRule.Visible = false;
-          miAddRefCharacter.Visible = false;
-          miDeleteItem.Visible = false;
-          miGenerateStory.Visible = false;
-          miGenerateScene.Visible = false;
-          miGenerateBeat.Visible = false;
-          miGenerateCallSheet.Visible = false;
-          miGeneratePerformance.Visible = false;
-          miGenerateDeliverable.Visible = false;
-        } else {
-          if (_selectedNode.Item != null) {
-            var itemTypeName = _itemTypeCache.ContainsKey(_selectedNode.Item.ItemTypeId) ? _itemTypeCache[_selectedNode.Item.ItemTypeId].Name : "";
-            miAddProject.Visible = itemTypeName == "Project";
-            miAddStory.Visible = itemTypeName == "Project";
-            miAddScene.Visible = itemTypeName == "Story";
-            miAddBeat.Visible = itemTypeName == "Scene";
-            miAddCharacter.Visible = itemTypeName == "Story" || itemTypeName == "Scene" || itemTypeName == "Beat";
-            miAddRefCharacter.Visible = itemTypeName == "Story" || itemTypeName == "Scene" || itemTypeName == "Beat";
-            miAddLocation.Visible = itemTypeName == "Story" || itemTypeName == "Scene" || itemTypeName == "Beat";
-            miAddRule.Visible = itemTypeName == "Story" || itemTypeName == "Scene" || itemTypeName == "Beat" || itemTypeName == "Character";
-            miGenerateStory.Visible = itemTypeName == "Project";
-            miGenerateScene.Visible = itemTypeName == "Story";
-            miGenerateBeat.Visible = itemTypeName == "Scene";
-            miGenerateCallSheet.Visible = itemTypeName == "Scene";
-            miGeneratePerformance.Visible = itemTypeName == "CallSheet";
-            miGenerateDeliverable.Visible = itemTypeName == "Performance";
-            miDeleteItem.Visible = true;
-          } else {
-            miAddProject.Visible = true;
-            miAddStory.Visible = false;
-            miAddScene.Visible = false;
-            miAddBeat.Visible = false;
-            miAddCharacter.Visible = false;
-            miAddLocation.Visible = false;
-            miAddRule.Visible = false;
-            miAddRefCharacter.Visible = false;
-            miDeleteItem.Visible = false;
-            miGenerateStory.Visible = false;
-            miGenerateScene.Visible = false;
-            miGenerateBeat.Visible = false;
-            miGenerateCallSheet.Visible = false;
-            miGeneratePerformance.Visible = false;
-            miGenerateDeliverable.Visible = false;
-          }
-        }
-
-      }
-    }
-
+    #region TreeView Selection and Tab Setup
     private ItemNode? _selectedNode = null;
 
     private void tvKb_AfterSelect(object sender, TreeViewEventArgs e) {
       if (e.Node != null) {
         _selectedNode = e.Node as ItemNode;
-        var itemId =  _selectedNode?.Item?.Id;
-        if (itemId.HasValue && _selectedNode != null) {  
+        var itemId = _selectedNode?.Item?.Id;
+        if (itemId.HasValue && _selectedNode != null) {
           var parentRelation = _selectedNode?.Relation;
           if (parentRelation != null) {
             StRelationType relationType = (StRelationType)(_selectedNode?.Relation?.RelationTypeId ?? 1);
@@ -252,7 +174,7 @@ namespace StorytimeAr {
           }
           SetupTpItems();
 
-        } 
+        }
       }
     }
 
@@ -313,86 +235,106 @@ namespace StorytimeAr {
         lbRelItemName.DataBindings.Clear();
         lbRelItemName.DataBindings.Add("Text", _selectedNode.Relation, "ItemName", true, DataSourceUpdateMode.OnPropertyChanged);
 
+        cbRelParentItem.DataBindings.Clear();
+        cbRelParentItem.DataBindings.Add("SelectedValue", _selectedNode.Relation, "ItemId", true, DataSourceUpdateMode.OnPropertyChanged);
+
         cbRelRelation.DataBindings.Clear();
         cbRelRelation.DataBindings.Add("SelectedValue", _selectedNode.Relation, "RelationTypeId", true, DataSourceUpdateMode.OnPropertyChanged);
 
-        cbRelItem.DataBindings.Clear();
-        cbRelItem.DataBindings.Add("SelectedValue", _selectedNode.Relation, "RelatedItemId", true, DataSourceUpdateMode.OnPropertyChanged);
 
         _inSetupTpRelations = false;
         RelationTabDirty = false;
       }
     }
+    #endregion
 
-    private async void reloadTreeToolStripMenuItem_Click(object sender, EventArgs e) {      
-        await LoadProjectItems();      
-    }
 
-    private void edItemName_TextChanged(object sender, EventArgs e) {
-      if (!_inSetupTpItems && _selectedNode != null && _selectedNode.Item != null) {
-        ItemTabDirty = true;
-      }
-    }
-    private void cbRelRelation_SelectedIndexChanged(object sender, EventArgs e) {
-      if (!_inSetupTpRelations && _selectedNode != null && _selectedNode.Relation != null) {
-        RelationTabDirty = true;
-        LoadItemsByRelationFromCache((StRelationType)_selectedNode.Relation.RelationTypeId);
-      }
-    }
+    // Context Menu Setup
+    private void cmsTreeview_Opening(object sender, System.ComponentModel.CancelEventArgs e) {
+      if (_selectedNode == null || _selectedNode.Item == null) {
+        miAddProject.Visible = true;
+        miAddStory.Visible = false;
+        miAddScene.Visible = false;
+        miAddBeat.Visible = false;
+        miAddCharacter.Visible = false;
+        miAddLocation.Visible = false;
+        miAddRule.Visible = false;        
+        miDeleteItem.Visible = false;
+        miGenerateStory.Visible = false;
+        miGenerateScene.Visible = false;
+        miGenerateBeat.Visible = false;
+        miGenerateCallSheet.Visible = false;
+        miGeneratePerformance.Visible = false;
+        miGenerateDeliverable.Visible = false;
+        miDuplicateItem.Visible = false;
+      } else {
+        var selectedItem = _selectedNode.Item;
+        var itemTypeName = _itemTypeCache.ContainsKey(selectedItem.ItemTypeId) ? _itemTypeCache[selectedItem.ItemTypeId].Name : "";
+        miDuplicateItem.Visible = true;
+        miDuplicateItem.Text = $"Duplicate {itemTypeName}";
+        miAddProject.Visible = itemTypeName == "Project";
+        miAddStory.Visible = itemTypeName == "Project" || itemTypeName == "Story";
+        miAddScene.Visible = itemTypeName == "Story";
+        miAddBeat.Visible = itemTypeName == "Scene";
+        miAddCharacter.Visible = itemTypeName == "Story" || itemTypeName == "Scene" || itemTypeName == "Beat";        
+        miAddLocation.Visible = itemTypeName == "Story" || itemTypeName == "Scene" || itemTypeName == "Beat";
+        miAddRule.Visible = itemTypeName == "Story" || itemTypeName == "Scene" || itemTypeName == "Beat" || itemTypeName == "Character";
+        miGenerateStory.Visible = itemTypeName == "Project";
+        miGenerateScene.Visible = itemTypeName == "Story";
+        miGenerateBeat.Visible = itemTypeName == "Scene";
+        miGenerateCallSheet.Visible = itemTypeName == "Scene";
+        miGeneratePerformance.Visible = itemTypeName == "CallSheet";
+        miGenerateDeliverable.Visible = itemTypeName == "Performance";
+        miDeleteItem.Visible = true;
 
-    private void cbRelItem_SelectedIndexChanged(object sender, EventArgs e) {
-      if (!_inSetupTpRelations && _selectedNode != null && _selectedNode.Relation != null) {
-        RelationTabDirty = true;
-      }
-    }
-
-    private void btnUpdateItem_Click(object sender, EventArgs e) {
-      if (_selectedNode != null && _selectedNode.Item != null) {
-        _appDataModuleService.UpdateItem(_selectedNode.Item);
-        _selectedNode.Text = _selectedNode.Item.Name;
-        SetupTpItems();
-      }
-    }
-
-    private void btnAbortItem_Click(object sender, EventArgs e) {
-      if (_selectedNode != null && _selectedNode.Item != null && _CurrentItemBackup != null) {
-        _selectedNode.Item.Name = _CurrentItemBackup.Name;
-        _selectedNode.Item.Description = _CurrentItemBackup.Description;
-        _selectedNode.Item.Data = _CurrentItemBackup.Data;
-        _selectedNode.Item.ItemTypeId = _CurrentItemBackup.ItemTypeId;
-        SetupTpItems();
-      }
-    }
-
-    private void btnUpdateRelation_Click(object sender, EventArgs e) {
-      if (_selectedNode != null && _selectedNode.Relation != null) {
-        _selectedNode.Relation.Rank = (int)edRank.Value;
-        _appDataModuleService.UpdateItemRelation(_selectedNode.Relation);
-        _selectedNode.Text = _selectedNode.Relation.RelationTypeName;
-        SetupTpRelations();
       }
     }
 
-    private void btnCancelRelation_Click(object sender, EventArgs e) {
-      if (_selectedNode != null && _selectedNode.Relation != null && _CurrentRelationBackup != null) {
-        _selectedNode.Relation.RelationTypeId = _CurrentRelationBackup.RelationTypeId;
-        _selectedNode.Relation.RelatedItemId = _CurrentRelationBackup.RelatedItemId;
-        _selectedNode.Relation.Rank = _CurrentRelationBackup.Rank;
-        SetupTpRelations();
-      }
-    }
-
+    #region Context Menu Add Item Handlers
     private async void miAddProject_Click(object sender, EventArgs e) {
-      var newItem = await _appDataModuleService.CreateItem(new ItemDto {
-        Name = "New Project",
-        Description = "",
-        Data = "{}",
-        ItemTypeId = (int)StItemType.Project
-      });
-      if (newItem == null) return;
-      var indx = tvKb.Nodes.Add(newItem.ToItemNode());
-      tvKb.SelectedNode = tvKb.Nodes[indx];
-      tvKb.Refresh();
+      if (_selectedNode != null) {
+        if (_selectedNode.Item!.ItemTypeId == (int)StItemType.Project) {
+          var newsubItem = await _appDataModuleService.CreateItem(new ItemDto {
+            Name = "Sub Project",
+            Description = "",
+            Data = "{}",
+            ItemTypeId = (int)StItemType.Project
+          });
+          if (newsubItem == null) return;
+          var relation = await _appDataModuleService.CreateRelation(_selectedNode.Item.Id, newsubItem.Id, (int)StRelationType.Contains);
+          if (relation == null) return;
+          var relationNode = relation.ToItemNode(newsubItem);
+          if (_selectedNode != null) {
+            var relNodeIndx = _selectedNode.Nodes.Add(relationNode);
+            tvKb.SelectedNode = _selectedNode.Nodes[relNodeIndx];
+            tvKb.Refresh();
+          }
+        } else {
+
+          var newRItem = await _appDataModuleService.CreateItem(new ItemDto {
+            Name = "New Project",
+            Description = "",
+            Data = "{}",
+            ItemTypeId = (int)StItemType.Project
+          });
+          if (newRItem == null) return;
+          var indxR = tvKb.Nodes.Add(newRItem.ToItemNode());
+          tvKb.SelectedNode = tvKb.Nodes[indxR];
+          tvKb.Refresh();
+        }
+      } else {
+
+        var newItem = await _appDataModuleService.CreateItem(new ItemDto {
+          Name = "New Project",
+          Description = "",
+          Data = "{}",
+          ItemTypeId = (int)StItemType.Project
+        });
+        if (newItem == null) return;
+        var indx = tvKb.Nodes.Add(newItem.ToItemNode());
+        tvKb.SelectedNode = tvKb.Nodes[indx];
+        tvKb.Refresh();
+      }
     }
 
     private async void miAddStory_Click(object sender, EventArgs e) {
@@ -408,12 +350,10 @@ namespace StorytimeAr {
         if (newItem == null) return;
         var relation = await _appDataModuleService.CreateRelation(currentProject.Id, newItem.Id, (int)StRelationType.Contains);
         if (relation == null) return;
-        var relationNode = relation.ToItemNode();
+        var relationNode = relation.ToItemNode(newItem);
         if (_selectedNode != null) {
           var relNodeIndx = _selectedNode.Nodes.Add(relationNode);
-          var storyNode = newItem.ToItemNode();
-          var storyIndx = relationNode.Nodes.Add(storyNode);
-          tvKb.SelectedNode = relationNode.Nodes[storyIndx];
+          tvKb.SelectedNode = _selectedNode.Nodes[relNodeIndx];
           tvKb.Refresh();
         }
       }
@@ -431,12 +371,10 @@ namespace StorytimeAr {
         if (newItem == null) return;
         var relation = await _appDataModuleService.CreateRelation(currentStory.Id, newItem.Id, (int)StRelationType.Contains);
         if (relation == null) return;
-        var relationNode = relation.ToItemNode();
+        var relationNode = relation.ToItemNode(newItem);
         if (_selectedNode != null) {
           var relNodeIndx = _selectedNode.Nodes.Add(relationNode);
-          var sceneNode = newItem.ToItemNode();
-          var sceneIndx = relationNode.Nodes.Add(sceneNode);
-          tvKb.SelectedNode = relationNode.Nodes[sceneIndx];
+          tvKb.SelectedNode = _selectedNode.Nodes[relNodeIndx];
           tvKb.Refresh();
         }
       }
@@ -454,12 +392,10 @@ namespace StorytimeAr {
         if (newItem == null) return;
         var relation = await _appDataModuleService.CreateRelation(currentScene.Id, newItem.Id, (int)StRelationType.Contains);
         if (relation == null) return;
-        var relationNode = relation.ToItemNode();
+        var relationNode = relation.ToItemNode(newItem);
         if (_selectedNode != null) {
           var relNodeIndx = _selectedNode.Nodes.Add(relationNode);
-          var beatNode = newItem.ToItemNode();
-          var beatIndx = relationNode.Nodes.Add(beatNode);
-          tvKb.SelectedNode = relationNode.Nodes[beatIndx];
+          tvKb.SelectedNode = _selectedNode.Nodes[relNodeIndx];
           tvKb.Refresh();
         }
       }
@@ -477,12 +413,10 @@ namespace StorytimeAr {
         if (newItem == null) return;
         var relation = await _appDataModuleService.CreateRelation(currentItem.Id, newItem.Id, (int)StRelationType.FeaturesCharacter);
         if (relation == null) return;
-        var relationNode = relation.ToItemNode();
+        var relationNode = relation.ToItemNode(newItem);
         if (_selectedNode != null) {
           var relNodeIndx = _selectedNode.Nodes.Add(relationNode);
-          var characterNode = newItem.ToItemNode();
-          var characterIndx = relationNode.Nodes.Add(characterNode);
-          tvKb.SelectedNode = relationNode.Nodes[characterIndx];
+          tvKb.SelectedNode = _selectedNode.Nodes[relNodeIndx];
           tvKb.Refresh();
         }
       }
@@ -500,12 +434,10 @@ namespace StorytimeAr {
         if (newItem == null) return;
         var relation = await _appDataModuleService.CreateRelation(currentItem.Id, newItem.Id, (int)StRelationType.TakesPlaceAt);
         if (relation == null) return;
-        var relationNode = relation.ToItemNode();
+        var relationNode = relation.ToItemNode(newItem);
         if (_selectedNode != null) {
           var relNodeIndx = _selectedNode.Nodes.Add(relationNode);
-          var locationNode = newItem.ToItemNode();
-          var locationIndx = relationNode.Nodes.Add(locationNode);
-          tvKb.SelectedNode = relationNode.Nodes[locationIndx];
+          tvKb.SelectedNode = _selectedNode.Nodes[relNodeIndx];
           tvKb.Refresh();
         }
       }
@@ -523,33 +455,12 @@ namespace StorytimeAr {
         if (newItem == null) return;
         var relation = await _appDataModuleService.CreateRelation(currentItem.Id, newItem.Id, (int)StRelationType.UsesRule);
         if (relation == null) return;
-        var relationNode = relation.ToItemNode();
+        var relationNode = relation.ToItemNode(newItem);
         if (_selectedNode != null) {
           var relNodeIndx = _selectedNode.Nodes.Add(relationNode);
-          var ruleNode = newItem.ToItemNode();
-          var ruleIndx = relationNode.Nodes.Add(ruleNode);
-          tvKb.SelectedNode = relationNode.Nodes[ruleIndx];
+          tvKb.SelectedNode = _selectedNode.Nodes[relNodeIndx];
           tvKb.Refresh();
         }
-      }
-    }
-
-    private async void miAddRefCharacter_Click(object sender, EventArgs e) {
-      try {
-        var currentItem = _selectedNode?.Item;
-        if (currentItem != null) {
-          var relation = await _appDataModuleService.CreateRelation(currentItem.Id, null, (int)StRelationType.FeaturesCharacter);
-          if (relation == null) return;
-          var relationNode = relation.ToItemNode();
-          if (_selectedNode?.Item != null) {
-            var relNodeIndx = _selectedNode.Nodes.Add(relationNode);
-            tvKb.SelectedNode = _selectedNode.Nodes[relNodeIndx];
-            tvKb.Refresh();
-          }
-        }
-      } catch (Exception ex) {
-        _logger.LogError(ex, "Error adding reference character relation.");
-        MessageBox.Show("An error occurred while adding reference character relation. Please check the logs for details.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
       }
     }
 
@@ -565,17 +476,58 @@ namespace StorytimeAr {
       }
 
     }
+    #endregion 
 
-    private async void btnGetLmStudioModels_Click(object sender, EventArgs e) {
-      var models = await _appDataModuleService.GetLmStudioModels();
-      lbLMStudioModels.Items.Clear();
-      lbLMStudioModels.Items.AddRange(models.ToArray());
+    #region Context Menu Duplicate Item Handlers
+    private async void miDuplicateItem_Click(object sender, EventArgs e) {
+      try { 
+
+        if (_selectedNode != null && _selectedNode.Item != null) {
+          var parentNode = _selectedNode.Parent as ItemNode;
+          var parentRelation = _selectedNode.Relation;
+          var parentNodeItem = parentNode?.Item;
+          var nodeItem = _selectedNode.Item;
+
+          if (parentNodeItem == null && nodeItem.ItemTypeId == (int)StItemType.Project) {
+            var newProjectItem = await _appDataModuleService.CreateItem(new ItemDto {
+              Name = nodeItem.Name,
+              Description = nodeItem.Description,
+              Data = nodeItem.Data,
+              ItemTypeId = (int)StItemType.Project
+            });
+            if (newProjectItem == null) return;
+            var indx = tvKb.Nodes.Add(newProjectItem.ToItemNode());
+            tvKb.SelectedNode = tvKb.Nodes[indx];
+            tvKb.Refresh();
+            return;
+          }
+
+          if (parentNode !=null && parentNodeItem != null && parentRelation != null) {
+            var newOtherItem = await _appDataModuleService.CreateItem(new ItemDto {
+              Name = nodeItem.Name,
+              Description = nodeItem.Description,
+              Data = nodeItem.Data,
+              ItemTypeId = nodeItem.ItemTypeId
+            });
+            if (newOtherItem == null) return;
+            var relation = await _appDataModuleService.CreateRelation(parentNodeItem.Id, newOtherItem.Id, parentRelation.RelationTypeId);
+            if (relation == null) return;
+            var relationNode = relation.ToItemNode(newOtherItem);          
+            var relNodeIndx = parentNode!.Nodes.Add(relationNode);
+            tvKb.SelectedNode = parentNode.Nodes[relNodeIndx];
+            tvKb.Refresh();          
+          }
+
+        }
+
+      } catch (Exception ex) {
+        _logger.LogError(ex, "Error duplicating item.");
+        MessageBox.Show("An error occurred while duplicating the item. Please check the logs for details.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+      }
     }
+    #endregion
 
-    private async void btnReloadTree_Click(object sender, EventArgs e) {
-      await LoadProjectItems();
-    }
-
+    #region Context Menu Generate Handlers
     private async void miGenerateStory_Click(object sender, EventArgs e) {
 
       if (_selectedNode != null && _selectedNode.Item != null) {
@@ -679,7 +631,31 @@ namespace StorytimeAr {
         }
       }
     }
+    #endregion
 
+    #region Settings Tab Handlers
+
+    delegate void LogMessageDelegate(string message);
+    private void DoLogMessage(string message) {
+      if (this.InvokeRequired) {
+        this.Invoke(new LogMessageDelegate(DoLogMessage), new object[] { message });
+      } else {
+        StringBuilder sb = new StringBuilder();
+        sb.AppendLine($"[{DateTime.Now:HH:mm:ss}] {message}");
+        sb.Append(tbTestOut.Text);
+        string finalMessage = sb.ToString();
+        if (finalMessage.Length > 10000) {
+          finalMessage = finalMessage.Substring(0, 10000); // Keep only the last 10,000 characters
+        }
+        tbTestOut.Text = finalMessage;
+        _logger.LogInformation(message);
+      }
+    }
+    private async void btnGetLmStudioModels_Click(object sender, EventArgs e) {
+      var models = await _appDataModuleService.GetLmStudioModels();
+      lbLMStudioModels.Items.Clear();
+      lbLMStudioModels.Items.AddRange(models.ToArray());
+    }
     private void lbClaudeLaunch_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e) {
       // Open the folder containing the Claude executable
       try {
@@ -724,5 +700,191 @@ namespace StorytimeAr {
         lbCurrentModel.Text = $"Current: LM Studio Model: {_appDataModuleService.CurrentLMStudioModel} ";
       }
     }
+
+    #endregion
+
+    #region Item Tab Handlers
+    private async void btnReloadTree_Click(object sender, EventArgs e) {
+      await LoadProjectItems();
+    }
+
+    private async void reloadTreeToolStripMenuItem_Click(object sender, EventArgs e) {
+      await LoadProjectItems();
+    }
+
+    private void edItemName_TextChanged(object sender, EventArgs e) {
+      if (!_inSetupTpItems && _selectedNode != null && _selectedNode.Item != null) {
+        ItemTabDirty = true;
+      }
+    }
+    private void cbRelRelation_SelectedIndexChanged(object sender, EventArgs e) {
+      if (!_inSetupTpRelations && _selectedNode != null && _selectedNode.Relation != null) {
+        RelationTabDirty = true;
+        LoadItemsByRelationFromCache((StRelationType)_selectedNode.Relation.RelationTypeId);
+      }
+    }
+
+    private void cbRelItem_SelectedIndexChanged(object sender, EventArgs e) {
+      if (!_inSetupTpRelations && _selectedNode != null && _selectedNode.Relation != null) {
+        RelationTabDirty = true;
+      }
+    }
+
+    private void btnUpdateItem_Click(object sender, EventArgs e) {
+      if (_selectedNode != null && _selectedNode.Item != null) {
+        _appDataModuleService.UpdateItem(_selectedNode.Item);
+        _selectedNode.Text = _selectedNode.Item.Name;
+        SetupTpItems();
+      }
+    }
+
+    private void btnAbortItem_Click(object sender, EventArgs e) {
+      if (_selectedNode != null && _selectedNode.Item != null && _CurrentItemBackup != null) {
+        _selectedNode.Item.Name = _CurrentItemBackup.Name;
+        _selectedNode.Item.Description = _CurrentItemBackup.Description;
+        _selectedNode.Item.Data = _CurrentItemBackup.Data;
+        _selectedNode.Item.ItemTypeId = _CurrentItemBackup.ItemTypeId;
+        SetupTpItems();
+      }
+    }
+
+    private void btnUpdateRelation_Click(object sender, EventArgs e) {
+      if (_selectedNode != null && _selectedNode.Relation != null) {
+        _selectedNode.Relation.Rank = (int)edRank.Value;
+        _appDataModuleService.UpdateItemRelation(_selectedNode.Relation);
+        _selectedNode.Text = _selectedNode.Relation.RelationTypeName;
+        SetupTpRelations();
+      }
+    }
+
+    private void btnCancelRelation_Click(object sender, EventArgs e) {
+      if (_selectedNode != null && _selectedNode.Relation != null && _CurrentRelationBackup != null) {
+        _selectedNode.Relation.RelationTypeId = _CurrentRelationBackup.RelationTypeId;
+        _selectedNode.Relation.RelatedItemId = _CurrentRelationBackup.RelatedItemId;
+        _selectedNode.Relation.Rank = _CurrentRelationBackup.Rank;
+        SetupTpRelations();
+      }
+    }
+
+
+    #endregion
+
+    private void tvKb_ItemDrag(object sender, ItemDragEventArgs e) {
+      if (e.Button == MouseButtons.Left && e.Item != null) {
+        DoDragDrop(e.Item, DragDropEffects.Move);
+      }
+    }
+
+    private bool IsNodeDescendant(ItemNode node, ItemNode potentialAncestor) {
+      if (node == null || potentialAncestor == null) return false;
+      if (node == potentialAncestor) return true;
+      var parent = node.Parent as ItemNode;
+      while (parent != null) {
+        if (parent == potentialAncestor) return true;
+        parent = parent.Parent as ItemNode;
+      }
+      return false;
+    }
+
+    private void tvKb_DragDrop(object sender, DragEventArgs e) {
+      if (e == null || e.Data == null) return;
+      try {
+        Point targetPt = tvKb.PointToClient(new Point(e.X, e.Y));
+        var targetAt = tvKb.GetNodeAt(targetPt);
+        var draggedAt = e.Data.GetData(typeof(ItemNode));
+        if (targetAt == null || draggedAt == null) {
+          MessageBox.Show("Invalid drag and drop operation. Please try again.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+          return;
+        }
+        ItemNode? targetNode = (ItemNode)targetAt;
+        ItemNode? draggedNode = (ItemNode)draggedAt;
+        if (draggedNode != null) {
+          if (targetNode != null && targetNode != draggedNode
+            && !IsNodeDescendant(draggedNode, targetNode)) {
+            if (draggedNode.Relation == null) {
+              MessageBox.Show("Only nodes with relations can be moved. Please create a relation for this node before moving.", "Invalid Move", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+              return;
+            }
+            var newRelation = draggedNode.Relation;
+            if (newRelation != null) {
+              var aRel = new ItemRelationDto {
+                Id = newRelation.Id,
+                ItemId = targetNode!.Item!.Id,
+                RelatedItemId = newRelation.RelatedItemId,
+                RelationTypeId = newRelation.RelationTypeId,
+                RelationTypeName = newRelation.RelationTypeName
+              };                            
+              _appDataModuleService.UpdateItemRelation(aRel);
+              draggedNode.Relation = aRel;
+              draggedNode.Parent!.Nodes.Remove(draggedNode);
+              var indx = targetNode.Nodes.Add(draggedNode);
+              tvKb.SelectedNode = targetNode.Nodes[indx];
+              targetNode.Expand();
+              tvKb.Refresh();
+            }
+          } else {
+            MessageBox.Show("Invalid move. You cannot move a node to itself or its descendant.", "Invalid Move", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+          }
+        }
+      } catch (Exception ex) {
+        _logger.LogError(ex, "Error during drag and drop operation.");
+        MessageBox.Show("An error occurred during the drag and drop operation. Please check the logs for details.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+      }
+    }
+
+    private void tvKb_DragEnter(object sender, DragEventArgs e) {
+      e.Effect = DragDropEffects.Move;
+    }
+
+    private void tvKb_DragOver(object sender, DragEventArgs e) {
+      if (e.Data != null) { 
+        Point targetPt = tvKb.PointToClient(new Point(e.X, e.Y));
+        var targetAt = tvKb.GetNodeAt(targetPt);
+        var draggedAt = e.Data.GetData(typeof(ItemNode));
+        if (targetAt != null && draggedAt != null) {
+          ItemNode targetNode = (ItemNode)targetAt;
+          ItemNode draggedNode = (ItemNode)draggedAt;
+          if (targetNode == draggedNode || IsNodeDescendant(draggedNode, targetNode)) {
+            e.Effect = DragDropEffects.None;
+          } else {
+            if (IsValidDrop(targetNode, draggedNode)) {
+              e.Effect = DragDropEffects.Move;
+            } else {
+              e.Effect = DragDropEffects.None;
+            }
+            
+          }
+        } else {
+          e.Effect = DragDropEffects.None;
+        }
+      }
+    }
+
+    private bool IsValidDrop(ItemNode targetNode, ItemNode draggedNode) {
+      int targetItemTypeId = targetNode.Item?.ItemTypeId ?? 0;
+      int draggedItemTypeId = draggedNode.Item?.ItemTypeId ?? 0;
+
+      switch ((StItemType)draggedItemTypeId) {
+        case StItemType.Project:
+          return (StItemType)targetItemTypeId == StItemType.Project;
+        case StItemType.Story:
+          return (StItemType)targetItemTypeId == StItemType.Project;
+        case StItemType.Scene:
+          return (StItemType)targetItemTypeId == StItemType.Story;
+        case StItemType.Beat:
+          return (StItemType)targetItemTypeId == StItemType.Scene;
+        case StItemType.Character:
+          return (StItemType)targetItemTypeId == StItemType.Story || (StItemType)targetItemTypeId == StItemType.Scene || (StItemType)targetItemTypeId == StItemType.Beat ;
+        case StItemType.Location:
+          return (StItemType)targetItemTypeId == StItemType.Story || (StItemType)targetItemTypeId == StItemType.Scene || (StItemType)targetItemTypeId == StItemType.Beat ;
+        case StItemType.Rule:
+          return (StItemType)targetItemTypeId == StItemType.Story || (StItemType)targetItemTypeId == StItemType.Scene 
+            || (StItemType)targetItemTypeId == StItemType.Beat;
+        default:
+          return false;
+      }      
+    }
+
+
   }
 }
