@@ -55,7 +55,7 @@ namespace Storytime.Core.Tools {
       try {
         using var scope = _serviceScopeFactory.CreateScope();
         var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
-        var query = new GetItemByIdQuery(id);
+        var query = new GetItemByIdQuery(id, true);
         var result = await mediator.Send(query);
         var opResult = McpOpResult.CreateSuccess("get-item-by-id", "Successfully retrieved item", result);
         return JsonSerializer.Serialize(opResult);

@@ -1,4 +1,5 @@
-﻿using Storytime.Core.Agents;
+﻿using KB.Core.Entities;
+using Storytime.Core.Agents;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -49,6 +50,12 @@ namespace Storytime.Core.Constants {
     public const string CmdAddCharacterSpeak = "add-character-speak-to-performance";
 
 
+    public static char[] InvalidFileNameChars() => Path.GetInvalidFileNameChars()
+      .Concat(MyInvalidList()).ToArray();
+    public static char[] MyInvalidList() => " `~!@#$%^&*()_-+=[]{},.;'".ToCharArray();
+    public static string UrlSafe(this string str) {
+      return string.Concat(str.Split(Cx.InvalidFileNameChars()));
+    }
 
     public static string CommonAppPath {
       get {
@@ -84,6 +91,16 @@ namespace Storytime.Core.Constants {
         return claudePath;
       }
     } 
+
+    public static string ExportPath {
+      get {
+        string exportPath = Path.Combine(CommonAppPath, "exports").ResolvePath();
+        if (!Directory.Exists(exportPath)) {
+          Directory.CreateDirectory(exportPath);
+        }
+        return exportPath;
+      }
+    }
 
 
     public static string ResolvePath(this string path) {

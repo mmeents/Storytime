@@ -11,6 +11,7 @@ using Storytime.Core.Service;
 using StorytimeAr.Models;
 using System.ComponentModel;
 using System.ComponentModel.Design;
+using System.Runtime;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Controls.Primitives;
@@ -33,6 +34,7 @@ namespace StorytimeAr {
       InitializeComponent();
       _logger.LogInformation("Form1 initialized.");
       lbClaudeLaunch.Text = Cx.ClaudeExecutablePath;
+      lbLinkExport.Text = Cx.ExportPath;
     }
 
     #region TreeView Loading and Setup
@@ -136,25 +138,7 @@ namespace StorytimeAr {
       }
       _inSetupTpItems = false;
 
-    }
-
-    private void LoadItemsByRelationFromCache(StRelationType relationType) {
-      List<StItemType> allowedItemTypes = relationType switch {
-        StRelationType.Contains => new List<StItemType> { StItemType.Project, StItemType.Story, StItemType.Scene, StItemType.Beat },
-        StRelationType.UsesRule => new List<StItemType> { StItemType.Rule },
-        StRelationType.FeaturesCharacter => new List<StItemType> { StItemType.Character },
-        StRelationType.TakesPlaceAt => new List<StItemType> { StItemType.Location },
-        _ => new List<StItemType>()
-      };
-      var filtered = _itemCache.Values
-        .Where(i => allowedItemTypes.Contains((StItemType)i.ItemTypeId))
-        .ToList();
-      _inSetupTpRelations = true;
-      cbRelParentItem.DataSource = filtered;
-      cbRelParentItem.DisplayMember = "Name";
-      cbRelParentItem.ValueMember = "Id";
-      _inSetupTpRelations = false;
-    }
+    }    
 
     #endregion
 
@@ -167,9 +151,7 @@ namespace StorytimeAr {
         var itemId = _selectedNode?.Item?.Id;
         if (itemId.HasValue && _selectedNode != null) {
           var parentRelation = _selectedNode?.Relation;
-          if (parentRelation != null) {
-            StRelationType relationType = (StRelationType)(_selectedNode?.Relation?.RelationTypeId ?? 1);
-            LoadItemsByRelationFromCache(relationType);
+          if (parentRelation != null) {            
             SetupTpRelations();
           }
           SetupTpItems();
@@ -224,8 +206,9 @@ namespace StorytimeAr {
     }
 
     private void SetupTpRelations() {
+      _inSetupTpRelations = true;
       if (_selectedNode != null && _selectedNode.Relation != null) {
-        _inSetupTpRelations = true;
+        
         _CurrentRelationBackup = _selectedNode.Relation.Clone();
         lbRelationId.Text = "RelationId: " + _selectedNode.Relation.Id.ToString();
 
@@ -234,17 +217,21 @@ namespace StorytimeAr {
 
         lbRelItemName.DataBindings.Clear();
         lbRelItemName.DataBindings.Add("Text", _selectedNode.Relation, "ItemName", true, DataSourceUpdateMode.OnPropertyChanged);
-
-        cbRelParentItem.DataBindings.Clear();
-        cbRelParentItem.DataBindings.Add("SelectedValue", _selectedNode.Relation, "ItemId", true, DataSourceUpdateMode.OnPropertyChanged);
-
+                
+        if (!cbRelRelation.Enabled) cbRelRelation.Enabled = true;
         cbRelRelation.DataBindings.Clear();
         cbRelRelation.DataBindings.Add("SelectedValue", _selectedNode.Relation, "RelationTypeId", true, DataSourceUpdateMode.OnPropertyChanged);
+       
+      } else { 
+        lbRelationId.Text = "RelationId: N/A";
+        lbRelItemName.DataBindings.Clear();
 
-
-        _inSetupTpRelations = false;
-        RelationTabDirty = false;
+        cbRelRelation.DataBindings.Clear();
+        cbRelRelation.Text = "";
+        if (cbRelRelation.Enabled) cbRelRelation.Enabled = false;
       }
+      _inSetupTpRelations = false;
+      RelationTabDirty = false;
     }
     #endregion
 
@@ -258,7 +245,7 @@ namespace StorytimeAr {
         miAddBeat.Visible = false;
         miAddCharacter.Visible = false;
         miAddLocation.Visible = false;
-        miAddRule.Visible = false;        
+        miAddRule.Visible = false;
         miDeleteItem.Visible = false;
         miGenerateStory.Visible = false;
         miGenerateScene.Visible = false;
@@ -276,7 +263,7 @@ namespace StorytimeAr {
         miAddStory.Visible = itemTypeName == "Project" || itemTypeName == "Story";
         miAddScene.Visible = itemTypeName == "Story";
         miAddBeat.Visible = itemTypeName == "Scene";
-        miAddCharacter.Visible = itemTypeName == "Story" || itemTypeName == "Scene" || itemTypeName == "Beat";        
+        miAddCharacter.Visible = itemTypeName == "Story" || itemTypeName == "Scene" || itemTypeName == "Beat";
         miAddLocation.Visible = itemTypeName == "Story" || itemTypeName == "Scene" || itemTypeName == "Beat";
         miAddRule.Visible = itemTypeName == "Story" || itemTypeName == "Scene" || itemTypeName == "Beat" || itemTypeName == "Character";
         miGenerateStory.Visible = itemTypeName == "Project";
@@ -480,7 +467,7 @@ namespace StorytimeAr {
 
     #region Context Menu Duplicate Item Handlers
     private async void miDuplicateItem_Click(object sender, EventArgs e) {
-      try { 
+      try {
 
         if (_selectedNode != null && _selectedNode.Item != null) {
           var parentNode = _selectedNode.Parent as ItemNode;
@@ -502,7 +489,7 @@ namespace StorytimeAr {
             return;
           }
 
-          if (parentNode !=null && parentNodeItem != null && parentRelation != null) {
+          if (parentNode != null && parentNodeItem != null && parentRelation != null) {
             var newOtherItem = await _appDataModuleService.CreateItem(new ItemDto {
               Name = nodeItem.Name,
               Description = nodeItem.Description,
@@ -512,10 +499,10 @@ namespace StorytimeAr {
             if (newOtherItem == null) return;
             var relation = await _appDataModuleService.CreateRelation(parentNodeItem.Id, newOtherItem.Id, parentRelation.RelationTypeId);
             if (relation == null) return;
-            var relationNode = relation.ToItemNode(newOtherItem);          
+            var relationNode = relation.ToItemNode(newOtherItem);
             var relNodeIndx = parentNode!.Nodes.Add(relationNode);
             tvKb.SelectedNode = parentNode.Nodes[relNodeIndx];
-            tvKb.Refresh();          
+            tvKb.Refresh();
           }
 
         }
@@ -719,8 +706,7 @@ namespace StorytimeAr {
     }
     private void cbRelRelation_SelectedIndexChanged(object sender, EventArgs e) {
       if (!_inSetupTpRelations && _selectedNode != null && _selectedNode.Relation != null) {
-        RelationTabDirty = true;
-        LoadItemsByRelationFromCache((StRelationType)_selectedNode.Relation.RelationTypeId);
+        RelationTabDirty = true;        
       }
     }
 
@@ -813,7 +799,7 @@ namespace StorytimeAr {
                 RelatedItemId = newRelation.RelatedItemId,
                 RelationTypeId = newRelation.RelationTypeId,
                 RelationTypeName = newRelation.RelationTypeName
-              };                            
+              };
               _appDataModuleService.UpdateItemRelation(aRel);
               draggedNode.Relation = aRel;
               draggedNode.Parent!.Nodes.Remove(draggedNode);
@@ -837,7 +823,7 @@ namespace StorytimeAr {
     }
 
     private void tvKb_DragOver(object sender, DragEventArgs e) {
-      if (e.Data != null) { 
+      if (e.Data != null) {
         Point targetPt = tvKb.PointToClient(new Point(e.X, e.Y));
         var targetAt = tvKb.GetNodeAt(targetPt);
         var draggedAt = e.Data.GetData(typeof(ItemNode));
@@ -852,7 +838,7 @@ namespace StorytimeAr {
             } else {
               e.Effect = DragDropEffects.None;
             }
-            
+
           }
         } else {
           e.Effect = DragDropEffects.None;
@@ -874,17 +860,63 @@ namespace StorytimeAr {
         case StItemType.Beat:
           return (StItemType)targetItemTypeId == StItemType.Scene;
         case StItemType.Character:
-          return (StItemType)targetItemTypeId == StItemType.Story || (StItemType)targetItemTypeId == StItemType.Scene || (StItemType)targetItemTypeId == StItemType.Beat ;
+          return (StItemType)targetItemTypeId == StItemType.Story || (StItemType)targetItemTypeId == StItemType.Scene || (StItemType)targetItemTypeId == StItemType.Beat;
         case StItemType.Location:
-          return (StItemType)targetItemTypeId == StItemType.Story || (StItemType)targetItemTypeId == StItemType.Scene || (StItemType)targetItemTypeId == StItemType.Beat ;
+          return (StItemType)targetItemTypeId == StItemType.Story || (StItemType)targetItemTypeId == StItemType.Scene || (StItemType)targetItemTypeId == StItemType.Beat;
         case StItemType.Rule:
-          return (StItemType)targetItemTypeId == StItemType.Story || (StItemType)targetItemTypeId == StItemType.Scene 
+          return (StItemType)targetItemTypeId == StItemType.Story || (StItemType)targetItemTypeId == StItemType.Scene
             || (StItemType)targetItemTypeId == StItemType.Beat;
+        case StItemType.Deliverable:
+          return (StItemType)targetItemTypeId == StItemType.Project;
         default:
           return false;
-      }      
+      }
     }
 
+    private async void btnExport_Click(object sender, EventArgs e) {
+      if (_selectedNode?.Item == null) return;
+      var exportPath = Cx.ExportPath;
+      if (string.IsNullOrEmpty(exportPath)) {
+        MessageBox.Show("Please set an export folder in Cx.cs file.", "Export", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+        return;
+      }
+      var wasCursor = Cursor.Current;
+      try {        
+        Cursor.Current = Cursors.WaitCursor;
+        var result = await _appDataModuleService.ExportItem(_selectedNode.Item.Id, cbExportRecurse.Checked, exportPath);
+        Cursor.Current = wasCursor;
+        if (!result.Success) {
+          MessageBox.Show($"Export failed: {result.Message}", "Export", MessageBoxButtons.OK, MessageBoxIcon.Error);
+          return;
+        } else {
+          MessageBox.Show("Export complete.", "Export", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }        
+      } catch (Exception ex) {
+        _logger.LogError(ex, "Export failed.");
+        Cursor.Current = wasCursor;
+        MessageBox.Show("Export failed. Check logs.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+      }
+    }
 
+    private void lbLinkExport_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e) {
+      // Open the folder containing the Claude executable
+      try {
+        var exportPath = Cx.ExportPath;
+        
+        if (exportPath != null) {
+          System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo() {
+            FileName = exportPath,
+            UseShellExecute = true,
+            Verb = "open"
+          });
+        } else {
+          MessageBox.Show("Could not determine the folder path for the export location.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+
+      } catch (Exception ex) {
+        _logger.LogError(ex, "Error opening export folder.");
+        MessageBox.Show("An error occurred while trying to open the export folder. Please check the logs for details.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+      }
+    }
   }
 }

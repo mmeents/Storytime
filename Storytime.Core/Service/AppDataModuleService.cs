@@ -5,6 +5,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Storytime.Core.Agents;
+using Storytime.Core.Handlers.Export;
 using Storytime.Core.Handlers.Items;
 using Storytime.Core.Models;
 
@@ -33,6 +34,7 @@ namespace Storytime.Core.Service {
     Task<bool> GenerateCallSheetForStoryScene(int storyId, int sceneId);
     Task<bool> GeneratePerformanceForCallSheet(int callSheetId, int storyId);
     Task<bool> GenerateDeliverableForPerformance(int performanceId);
+    Task<ExportItemCommandResult> ExportItem(int itemId, bool exportChildren, string exportPath);
 
   }
 
@@ -283,6 +285,14 @@ namespace Storytime.Core.Service {
         using var scope = _scopeFactory.CreateScope();
         var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();        
         var command = new Handlers.LmStudio.GenerateDeliverableCommand(performanceId);
+        var result = await mediator.Send(command);
+        return result;
+    }
+
+    public async Task<ExportItemCommandResult> ExportItem(int itemId, bool exportChildren, string exportPath) {
+        using var scope = _scopeFactory.CreateScope();
+        var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();        
+        var command = new ExportItemCommand(itemId, exportChildren, exportPath);
         var result = await mediator.Send(command);
         return result;
     }

@@ -24,7 +24,7 @@ namespace Storytime.Core.Agents {
 
     public async Task<ItemDto?> ObservePerformance(int performanceId, CancellationToken ct = default) {
 
-      var performance = await _mediator.Send(new GetItemByIdQuery(performanceId), ct);
+      var performance = await _mediator.Send(new GetItemByIdQuery(performanceId, false), ct);
       if (performance == null)
         throw new Exception($"Performance with id {performanceId} not found.");
 
