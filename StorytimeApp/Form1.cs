@@ -1,3 +1,4 @@
+using FastColoredTextBoxNS.Types;
 using KB.Core.Entities;
 using KB.Core.Models;
 using MediatR;
@@ -13,6 +14,7 @@ using System.ComponentModel;
 using System.ComponentModel.Design;
 using System.Runtime;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Controls.Primitives;
 using System.Windows.Forms;
@@ -48,6 +50,8 @@ namespace StorytimeAr {
       btnUpdateItem.Visible = false;
       btnCancelRelation.Visible = false;
       btnUpdateRelation.Visible = false;
+      btnAbortExport.Visible = false;
+      btnUpdateExport.Visible = false;
       if (btnReloadTree.Visible) btnReloadTree.Visible = false;
 
       try {
@@ -138,7 +142,7 @@ namespace StorytimeAr {
       }
       _inSetupTpItems = false;
 
-    }    
+    }
 
     #endregion
 
@@ -151,7 +155,7 @@ namespace StorytimeAr {
         var itemId = _selectedNode?.Item?.Id;
         if (itemId.HasValue && _selectedNode != null) {
           var parentRelation = _selectedNode?.Relation;
-          if (parentRelation != null) {            
+          if (parentRelation != null) {
             SetupTpRelations();
           }
           SetupTpItems();
@@ -169,6 +173,8 @@ namespace StorytimeAr {
         _ItemTabDirty = value;
         btnAbortItem.Visible = value;
         btnUpdateItem.Visible = value;
+        btnAbortExport.Visible = value;
+        btnUpdateExport.Visible = value;
       }
     }
 
@@ -190,6 +196,8 @@ namespace StorytimeAr {
     private void SetupTpItems() {
       if (_selectedNode != null && _selectedNode.Item != null) {
         _inSetupTpItems = true;
+        var item = _selectedNode.Item;
+
         _CurrentItemBackup = _selectedNode.Item.Clone();
         lbItemId.Text = "ItemId: " + _selectedNode.Item.Id.ToString();
         edItemType.DataBindings.Clear();
@@ -200,6 +208,11 @@ namespace StorytimeAr {
         edItemDesc.DataBindings.Add("Text", _selectedNode.Item, "Description", true, DataSourceUpdateMode.OnPropertyChanged);
         edItemData.DataBindings.Clear();
         edItemData.DataBindings.Add("Text", _selectedNode.Item, "Data", true, DataSourceUpdateMode.OnPropertyChanged);
+
+        lbExportFilePath.Text = Path.Combine(Cx.ExportPath, $"{item.ItemTypeName}{item.Id}-{item.Name.UrlSafe()}.md");
+        lbExportItemName.Text = $"{item.Name}";
+        fclbDescription.DataBindings.Clear();
+        fclbDescription.DataBindings.Add("Text", _selectedNode.Item, "Description", true, DataSourceUpdateMode.OnPropertyChanged);
         _inSetupTpItems = false;
         ItemTabDirty = false;
       }
@@ -208,7 +221,7 @@ namespace StorytimeAr {
     private void SetupTpRelations() {
       _inSetupTpRelations = true;
       if (_selectedNode != null && _selectedNode.Relation != null) {
-        
+
         _CurrentRelationBackup = _selectedNode.Relation.Clone();
         lbRelationId.Text = "RelationId: " + _selectedNode.Relation.Id.ToString();
 
@@ -217,12 +230,12 @@ namespace StorytimeAr {
 
         lbRelItemName.DataBindings.Clear();
         lbRelItemName.DataBindings.Add("Text", _selectedNode.Relation, "ItemName", true, DataSourceUpdateMode.OnPropertyChanged);
-                
+
         if (!cbRelRelation.Enabled) cbRelRelation.Enabled = true;
         cbRelRelation.DataBindings.Clear();
         cbRelRelation.DataBindings.Add("SelectedValue", _selectedNode.Relation, "RelationTypeId", true, DataSourceUpdateMode.OnPropertyChanged);
-       
-      } else { 
+
+      } else {
         lbRelationId.Text = "RelationId: N/A";
         lbRelItemName.DataBindings.Clear();
 
@@ -643,8 +656,31 @@ namespace StorytimeAr {
       lbLMStudioModels.Items.Clear();
       lbLMStudioModels.Items.AddRange(models.ToArray());
     }
+
+    private void lbLaunchCmd_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e) {
+      // Open cmd in folder containing the .mcp.json file
+      try {
+        var exportPath = Cx.ClaudeExecutablePath;
+
+        if (exportPath != null) {
+          System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo() {
+            FileName = "cmd.exe",
+            Arguments = $"/K cd /d \"{exportPath}\"", // /d handles drive changes (e.g., C: to D:)
+            WorkingDirectory = exportPath,
+            UseShellExecute = true
+          });
+        } else {
+          MessageBox.Show("Could not determine the folder path for the export location.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+
+      } catch (Exception ex) {
+        _logger.LogError(ex, "Error opening export folder.");
+        MessageBox.Show("An error occurred while trying to open the export folder. Please check the logs for details.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+      }
+    }
+
     private void lbClaudeLaunch_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e) {
-      // Open the folder containing the Claude executable
+      // Open the folder containing the Claude executable settings.  Claude should be configured in your path. 
       try {
         var claudePath = Cx.ClaudeExecutablePath;
 
@@ -706,7 +742,7 @@ namespace StorytimeAr {
     }
     private void cbRelRelation_SelectedIndexChanged(object sender, EventArgs e) {
       if (!_inSetupTpRelations && _selectedNode != null && _selectedNode.Relation != null) {
-        RelationTabDirty = true;        
+        RelationTabDirty = true;
       }
     }
 
@@ -755,6 +791,7 @@ namespace StorytimeAr {
 
     #endregion
 
+    #region Drag and Drop Handlers
     private void tvKb_ItemDrag(object sender, ItemDragEventArgs e) {
       if (e.Button == MouseButtons.Left && e.Item != null) {
         DoDragDrop(e.Item, DragDropEffects.Move);
@@ -872,7 +909,9 @@ namespace StorytimeAr {
           return false;
       }
     }
+    #endregion
 
+    #region Export Tab and Handlers
     private async void btnExport_Click(object sender, EventArgs e) {
       if (_selectedNode?.Item == null) return;
       var exportPath = Cx.ExportPath;
@@ -881,7 +920,7 @@ namespace StorytimeAr {
         return;
       }
       var wasCursor = Cursor.Current;
-      try {        
+      try {
         Cursor.Current = Cursors.WaitCursor;
         var result = await _appDataModuleService.ExportItem(_selectedNode.Item.Id, cbExportRecurse.Checked, exportPath);
         Cursor.Current = wasCursor;
@@ -890,7 +929,7 @@ namespace StorytimeAr {
           return;
         } else {
           MessageBox.Show("Export complete.", "Export", MessageBoxButtons.OK, MessageBoxIcon.Information);
-        }        
+        }
       } catch (Exception ex) {
         _logger.LogError(ex, "Export failed.");
         Cursor.Current = wasCursor;
@@ -898,11 +937,12 @@ namespace StorytimeAr {
       }
     }
 
+    
     private void lbLinkExport_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e) {
-      // Open the folder containing the Claude executable
+      // Open the folder containing the Claude executable configurations.  Claude code should be configured in your path.
       try {
         var exportPath = Cx.ExportPath;
-        
+
         if (exportPath != null) {
           System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo() {
             FileName = exportPath,
@@ -918,5 +958,42 @@ namespace StorytimeAr {
         MessageBox.Show("An error occurred while trying to open the export folder. Please check the logs for details.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
       }
     }
+
+    // Define some styles
+    TextStyle HeaderStyle = new TextStyle(Brushes.Blue, null, FontStyle.Bold);
+    TextStyle BoldStyle = new TextStyle(null, null, FontStyle.Bold);
+    TextStyle ItalicStyle = new TextStyle(null, null, FontStyle.Italic);
+    TextStyle LinkStyle = new TextStyle(Brushes.DarkCyan, null, FontStyle.Underline);
+    TextStyle CodeStyle = new TextStyle(Brushes.Gray, Brushes.GhostWhite, FontStyle.Regular);
+
+    private void fclbDescription_TextChanged(object sender, FastColoredTextBoxNS.TextChangedEventArgs e) {
+      // 1. Clear existing custom styles in the changed range
+      e.ChangedRange.ClearStyle(HeaderStyle, BoldStyle, ItalicStyle, LinkStyle, CodeStyle);
+
+      // 2. Apply Header highlighting (e.g., # Header)
+      e.ChangedRange.SetStyle(HeaderStyle, @"^#.*$", RegexOptions.Multiline);
+
+      // 3. Apply Bold highlighting (**text**)
+      e.ChangedRange.SetStyle(BoldStyle, @"\*\*.*?\*\*");
+
+      // 4. Apply Italic highlighting (*text*)
+      e.ChangedRange.SetStyle(ItalicStyle, @"\*.*?\*");
+
+      // 5. Apply Link highlighting ([text](url))
+      e.ChangedRange.SetStyle(LinkStyle, @"\[.*?\]\(.*?\)");
+
+      // 6. Apply Inline Code highlighting (`code`)
+      e.ChangedRange.SetStyle(CodeStyle, @"`.*?`|(?s)```.*?```");
+
+      if (!_inSetupTpItems && _selectedNode != null && _selectedNode.Item != null) {
+        ItemTabDirty = true;
+      }
+    }
+
+    #endregion
+
+
+
+
   }
 }

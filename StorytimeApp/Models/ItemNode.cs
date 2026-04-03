@@ -48,7 +48,7 @@ namespace StorytimeAr.Models {
     public static ItemNode? FindAncestorOfType(this ItemNode node, StItemType itemType) {
       var current = node.Parent as ItemNode;
       while (current != null) {
-        if (!current.IsRelationNode && current.Item?.ItemTypeId == (int)itemType)
+        if ( current.Item?.ItemTypeId == (int)itemType)
           return current;
         current = current.Parent as ItemNode;
       }

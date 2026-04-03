@@ -64,9 +64,6 @@
       edLmStudioModel = new TextBox();
       btnGetLmStudioModels = new Button();
       tpItems = new TabPage();
-      lbLinkExport = new LinkLabel();
-      cbExportRecurse = new CheckBox();
-      btnExport = new Button();
       btnCancelRelation = new Button();
       btnUpdateRelation = new Button();
       label7 = new Label();
@@ -87,7 +84,16 @@
       edItemDesc = new TextBox();
       edItemType = new ComboBox();
       edItemName = new TextBox();
-      tpRelations = new TabPage();
+      tpExport = new TabPage();
+      btnAbortExport = new Button();
+      btnUpdateExport = new Button();
+      lbExportItemName = new Label();
+      lbExportFilePath = new Label();
+      lbLinkExport = new LinkLabel();
+      cbExportRecurse = new CheckBox();
+      btnExport = new Button();
+      fclbDescription = new FastColoredTextBoxNS.FastColoredTextBox();
+      lbLaunchCmd = new LinkLabel();
       ((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
       splitContainer1.Panel1.SuspendLayout();
       splitContainer1.Panel2.SuspendLayout();
@@ -101,6 +107,8 @@
       tpBrowse.SuspendLayout();
       tpItems.SuspendLayout();
       ((System.ComponentModel.ISupportInitialize)edRank).BeginInit();
+      tpExport.SuspendLayout();
+      ((System.ComponentModel.ISupportInitialize)fclbDescription).BeginInit();
       SuspendLayout();
       // 
       // splitContainer1
@@ -323,7 +331,7 @@
       // 
       tabControl1.Controls.Add(tpBrowse);
       tabControl1.Controls.Add(tpItems);
-      tabControl1.Controls.Add(tpRelations);
+      tabControl1.Controls.Add(tpExport);
       tabControl1.Dock = DockStyle.Fill;
       tabControl1.Location = new Point(0, 0);
       tabControl1.Name = "tabControl1";
@@ -333,6 +341,7 @@
       // 
       // tpBrowse
       // 
+      tpBrowse.Controls.Add(lbLaunchCmd);
       tpBrowse.Controls.Add(label6);
       tpBrowse.Controls.Add(tbTestOut);
       tpBrowse.Controls.Add(lbLMStudioModels);
@@ -374,7 +383,7 @@
       // 
       lbLMStudioModels.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
       lbLMStudioModels.FormattingEnabled = true;
-      lbLMStudioModels.Location = new Point(173, 145);
+      lbLMStudioModels.Location = new Point(173, 122);
       lbLMStudioModels.Name = "lbLMStudioModels";
       lbLMStudioModels.Size = new Size(368, 64);
       lbLMStudioModels.TabIndex = 9;
@@ -429,7 +438,7 @@
       // lbClaudeLaunch
       // 
       lbClaudeLaunch.AutoSize = true;
-      lbClaudeLaunch.Location = new Point(173, 22);
+      lbClaudeLaunch.Location = new Point(228, 22);
       lbClaudeLaunch.Name = "lbClaudeLaunch";
       lbClaudeLaunch.Size = new Size(93, 15);
       lbClaudeLaunch.TabIndex = 4;
@@ -456,7 +465,7 @@
       // 
       // btnGetLmStudioModels
       // 
-      btnGetLmStudioModels.Location = new Point(58, 145);
+      btnGetLmStudioModels.Location = new Point(71, 137);
       btnGetLmStudioModels.Name = "btnGetLmStudioModels";
       btnGetLmStudioModels.Size = new Size(85, 23);
       btnGetLmStudioModels.TabIndex = 1;
@@ -466,9 +475,6 @@
       // 
       // tpItems
       // 
-      tpItems.Controls.Add(lbLinkExport);
-      tpItems.Controls.Add(cbExportRecurse);
-      tpItems.Controls.Add(btnExport);
       tpItems.Controls.Add(btnCancelRelation);
       tpItems.Controls.Add(btnUpdateRelation);
       tpItems.Controls.Add(label7);
@@ -496,37 +502,6 @@
       tpItems.TabIndex = 0;
       tpItems.Text = "Items";
       tpItems.UseVisualStyleBackColor = true;
-      // 
-      // lbLinkExport
-      // 
-      lbLinkExport.AutoSize = true;
-      lbLinkExport.Location = new Point(334, 137);
-      lbLinkExport.Name = "lbLinkExport";
-      lbLinkExport.Size = new Size(60, 15);
-      lbLinkExport.TabIndex = 25;
-      lbLinkExport.TabStop = true;
-      lbLinkExport.Text = "linkLabel1";
-      lbLinkExport.LinkClicked += lbLinkExport_LinkClicked;
-      // 
-      // cbExportRecurse
-      // 
-      cbExportRecurse.AutoSize = true;
-      cbExportRecurse.Location = new Point(220, 136);
-      cbExportRecurse.Name = "cbExportRecurse";
-      cbExportRecurse.Size = new Size(108, 19);
-      cbExportRecurse.TabIndex = 24;
-      cbExportRecurse.Text = "Children items?";
-      cbExportRecurse.UseVisualStyleBackColor = true;
-      // 
-      // btnExport
-      // 
-      btnExport.Location = new Point(126, 133);
-      btnExport.Name = "btnExport";
-      btnExport.Size = new Size(88, 23);
-      btnExport.TabIndex = 23;
-      btnExport.Text = "Export Item";
-      btnExport.UseVisualStyleBackColor = true;
-      btnExport.Click += btnExport_Click;
       // 
       // btnCancelRelation
       // 
@@ -622,7 +597,7 @@
       // 
       // btnAbortItem
       // 
-      btnAbortItem.Location = new Point(157, 171);
+      btnAbortItem.Location = new Point(270, 131);
       btnAbortItem.Name = "btnAbortItem";
       btnAbortItem.Size = new Size(75, 23);
       btnAbortItem.TabIndex = 9;
@@ -632,7 +607,7 @@
       // 
       // btnUpdateItem
       // 
-      btnUpdateItem.Location = new Point(76, 171);
+      btnUpdateItem.Location = new Point(189, 131);
       btnUpdateItem.Name = "btnUpdateItem";
       btnUpdateItem.Size = new Size(75, 23);
       btnUpdateItem.TabIndex = 8;
@@ -652,7 +627,7 @@
       // label2
       // 
       label2.AutoSize = true;
-      label2.Location = new Point(0, 261);
+      label2.Location = new Point(0, 222);
       label2.Name = "label2";
       label2.Size = new Size(67, 15);
       label2.TabIndex = 6;
@@ -661,7 +636,7 @@
       // lbType
       // 
       lbType.AutoSize = true;
-      lbType.Location = new Point(41, 229);
+      lbType.Location = new Point(41, 195);
       lbType.Name = "lbType";
       lbType.Size = new Size(31, 15);
       lbType.TabIndex = 5;
@@ -670,7 +645,7 @@
       // lbItemName
       // 
       lbItemName.AutoSize = true;
-      lbItemName.Location = new Point(33, 200);
+      lbItemName.Location = new Point(33, 166);
       lbItemName.Name = "lbItemName";
       lbItemName.Size = new Size(39, 15);
       lbItemName.TabIndex = 4;
@@ -690,11 +665,11 @@
       // edItemDesc
       // 
       edItemDesc.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-      edItemDesc.Location = new Point(76, 261);
+      edItemDesc.Location = new Point(76, 222);
       edItemDesc.Multiline = true;
       edItemDesc.Name = "edItemDesc";
       edItemDesc.ScrollBars = ScrollBars.Both;
-      edItemDesc.Size = new Size(465, 73);
+      edItemDesc.Size = new Size(465, 113);
       edItemDesc.TabIndex = 2;
       edItemDesc.TextChanged += edItemName_TextChanged;
       // 
@@ -702,7 +677,7 @@
       // 
       edItemType.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
       edItemType.FormattingEnabled = true;
-      edItemType.Location = new Point(77, 226);
+      edItemType.Location = new Point(77, 192);
       edItemType.Name = "edItemType";
       edItemType.Size = new Size(465, 23);
       edItemType.TabIndex = 1;
@@ -711,21 +686,150 @@
       // edItemName
       // 
       edItemName.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-      edItemName.Location = new Point(77, 197);
+      edItemName.Location = new Point(77, 163);
       edItemName.Name = "edItemName";
       edItemName.Size = new Size(465, 23);
       edItemName.TabIndex = 0;
       edItemName.TextChanged += edItemName_TextChanged;
       // 
-      // tpRelations
+      // tpExport
       // 
-      tpRelations.Location = new Point(4, 24);
-      tpRelations.Name = "tpRelations";
-      tpRelations.Padding = new Padding(3);
-      tpRelations.Size = new Size(549, 511);
-      tpRelations.TabIndex = 1;
-      tpRelations.Text = "Factory Floor";
-      tpRelations.UseVisualStyleBackColor = true;
+      tpExport.Controls.Add(btnAbortExport);
+      tpExport.Controls.Add(btnUpdateExport);
+      tpExport.Controls.Add(lbExportItemName);
+      tpExport.Controls.Add(lbExportFilePath);
+      tpExport.Controls.Add(lbLinkExport);
+      tpExport.Controls.Add(cbExportRecurse);
+      tpExport.Controls.Add(btnExport);
+      tpExport.Controls.Add(fclbDescription);
+      tpExport.Location = new Point(4, 24);
+      tpExport.Name = "tpExport";
+      tpExport.Padding = new Padding(3);
+      tpExport.Size = new Size(549, 511);
+      tpExport.TabIndex = 1;
+      tpExport.Text = "Export";
+      tpExport.UseVisualStyleBackColor = true;
+      // 
+      // btnAbortExport
+      // 
+      btnAbortExport.Location = new Point(86, 6);
+      btnAbortExport.Name = "btnAbortExport";
+      btnAbortExport.Size = new Size(75, 23);
+      btnAbortExport.TabIndex = 32;
+      btnAbortExport.Text = "Abort";
+      btnAbortExport.UseVisualStyleBackColor = true;
+      btnAbortExport.Click += btnAbortItem_Click;
+      // 
+      // btnUpdateExport
+      // 
+      btnUpdateExport.Location = new Point(5, 6);
+      btnUpdateExport.Name = "btnUpdateExport";
+      btnUpdateExport.Size = new Size(75, 23);
+      btnUpdateExport.TabIndex = 31;
+      btnUpdateExport.Text = "Update";
+      btnUpdateExport.UseVisualStyleBackColor = true;
+      btnUpdateExport.Click += btnUpdateItem_Click;
+      // 
+      // lbExportItemName
+      // 
+      lbExportItemName.AutoSize = true;
+      lbExportItemName.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
+      lbExportItemName.Location = new Point(28, 61);
+      lbExportItemName.Name = "lbExportItemName";
+      lbExportItemName.Size = new Size(52, 21);
+      lbExportItemName.TabIndex = 30;
+      lbExportItemName.Text = "label9";
+      // 
+      // lbExportFilePath
+      // 
+      lbExportFilePath.AutoSize = true;
+      lbExportFilePath.Location = new Point(7, 32);
+      lbExportFilePath.Name = "lbExportFilePath";
+      lbExportFilePath.Size = new Size(93, 15);
+      lbExportFilePath.TabIndex = 29;
+      lbExportFilePath.Text = "lbExportFilePath";
+      // 
+      // lbLinkExport
+      // 
+      lbLinkExport.AutoSize = true;
+      lbLinkExport.Location = new Point(375, 10);
+      lbLinkExport.Name = "lbLinkExport";
+      lbLinkExport.Size = new Size(60, 15);
+      lbLinkExport.TabIndex = 28;
+      lbLinkExport.TabStop = true;
+      lbLinkExport.Text = "linkLabel1";
+      lbLinkExport.LinkClicked += lbLinkExport_LinkClicked;
+      // 
+      // cbExportRecurse
+      // 
+      cbExportRecurse.AutoSize = true;
+      cbExportRecurse.Location = new Point(261, 9);
+      cbExportRecurse.Name = "cbExportRecurse";
+      cbExportRecurse.Size = new Size(108, 19);
+      cbExportRecurse.TabIndex = 27;
+      cbExportRecurse.Text = "Children items?";
+      cbExportRecurse.UseVisualStyleBackColor = true;
+      // 
+      // btnExport
+      // 
+      btnExport.Location = new Point(167, 6);
+      btnExport.Name = "btnExport";
+      btnExport.Size = new Size(88, 23);
+      btnExport.TabIndex = 26;
+      btnExport.Text = "Export Item";
+      btnExport.UseVisualStyleBackColor = true;
+      btnExport.Click += btnExport_Click;
+      // 
+      // fclbDescription
+      // 
+      fclbDescription.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+      fclbDescription.AutoCompleteBracketsList = new char[]
+  {
+    '(',
+    ')',
+    '{',
+    '}',
+    '[',
+    ']',
+    '"',
+    '"',
+    '\'',
+    '\''
+  };
+      fclbDescription.AutoIndentCharsPatterns = "^\\s*[\\w\\.]+(\\s\\w+)?\\s*(?<range>=)\\s*(?<range>[^;=]+);\r\n^\\s*(case|default)\\s*[^:]*(?<range>:)\\s*(?<range>[^;]+);";
+      fclbDescription.AutoScrollMinSize = new Size(0, 14);
+      fclbDescription.BackBrush = null;
+      fclbDescription.BorderStyle = BorderStyle.FixedSingle;
+      fclbDescription.CharHeight = 14;
+      fclbDescription.CharWidth = 8;
+      fclbDescription.DefaultMarkerSize = 8;
+      fclbDescription.DisabledColor = Color.FromArgb(100, 180, 180, 180);
+      fclbDescription.FindForm = null;
+      fclbDescription.GoToForm = null;
+      fclbDescription.Hotkeys = resources.GetString("fclbDescription.Hotkeys");
+      fclbDescription.IsReplaceMode = false;
+      fclbDescription.Location = new Point(4, 90);
+      fclbDescription.Name = "fclbDescription";
+      fclbDescription.Paddings = new Padding(0);
+      fclbDescription.ReplaceForm = null;
+      fclbDescription.SelectionColor = Color.FromArgb(60, 0, 0, 255);
+      fclbDescription.ServiceColors = (FastColoredTextBoxNS.ServiceColors)resources.GetObject("fclbDescription.ServiceColors");
+      fclbDescription.Size = new Size(541, 418);
+      fclbDescription.TabIndex = 0;
+      fclbDescription.WordWrap = true;
+      fclbDescription.Zoom = 100;
+      fclbDescription.TextChanged += fclbDescription_TextChanged;
+      // 
+      // lbLaunchCmd
+      // 
+      lbLaunchCmd.AutoSize = true;
+      lbLaunchCmd.Location = new Point(162, 22);
+      lbLaunchCmd.Name = "lbLaunchCmd";
+      lbLaunchCmd.Size = new Size(31, 15);
+      lbLaunchCmd.TabIndex = 12;
+      lbLaunchCmd.TabStop = true;
+      lbLaunchCmd.Text = "cmd";
+      lbLaunchCmd.LinkClicked += lbLaunchCmd_LinkClicked;
       // 
       // Form1
       // 
@@ -752,6 +856,9 @@
       tpItems.ResumeLayout(false);
       tpItems.PerformLayout();
       ((System.ComponentModel.ISupportInitialize)edRank).EndInit();
+      tpExport.ResumeLayout(false);
+      tpExport.PerformLayout();
+      ((System.ComponentModel.ISupportInitialize)fclbDescription).EndInit();
       ResumeLayout(false);
     }
 
@@ -764,7 +871,7 @@
     private ToolStripMenuItem miAddProject;
     private TabControl tabControl1;
     private TabPage tpItems;
-    private TabPage tpRelations;
+    private TabPage tpExport;
     private ToolStripMenuItem reloadTreeToolStripMenuItem;
     private TextBox edItemDesc;
     private ComboBox edItemType;
@@ -817,8 +924,14 @@
     private Button btnUpdateRelation;
     private ImageList treeList;
     private ToolStripMenuItem miDuplicateItem;
-    private Button btnExport;
+    private FastColoredTextBoxNS.FastColoredTextBox fclbDescription;
     private LinkLabel lbLinkExport;
     private CheckBox cbExportRecurse;
+    private Button btnExport;
+    private Label lbExportItemName;
+    private Label lbExportFilePath;
+    private Button btnAbortExport;
+    private Button btnUpdateExport;
+    private LinkLabel lbLaunchCmd;
   }
 }
