@@ -30,7 +30,7 @@ Most configuration lives in `Cx.cs`. Before running, review and update:
 - **Export path** — folder where Markdown exports will be written
 - **Model names** — match the models you have loaded in LM Studio
 
-![screenshot1](images/LLMSettings.png)  
+![screenshot1](https://mmeents.github.io/files/LLMSettings2.png)  
 
 ## Database Setup
 
