@@ -24,7 +24,7 @@ Open `Storytime.sln` in Visual Studio.
 
 Most configuration lives in `Cx.cs`. Before running, review and update:
 
-- **Connection string** — these do not, please point it at your local SQL Server or LocalDB instance. The setting is in the appSetting.json files.  Each app has and needs one, Api, Mcp and App.
+- **Connection string** — Please point it at your local SQL Server or LocalDB instance. The setting is in the appSetting.json files.  Each app has and needs one, Api, Mcp and App.
 - **LM Studio endpoint** — default is set in Cs.cs and is configured for my setup.  You need to install it and find a good LLM. (I am using Nemotron from NVidia via LM Studio marketplace.) You will need to enable api usage and copy the url from that interface and update the Cx.cs. You will need to issue an api key from LM Studio and place it in the Cx.cs in order for MCP calls to work. It's best to verify MCP is installed via chat window locally before trying to ask to use via api.
 - **Claude Code** — Install and launch a session from the Agent Launch Folder. Authenticate the session and use it to track your usage, and hold the session open. Be careful not to abuse your limits.
 - **Export path** — folder where Markdown exports will be written
@@ -44,11 +44,11 @@ In Visual Studio, open **Package Manager Console** and:
 Update-Database -Context StorytimeDbContext
 ```
 
-This will create the StorytimeDb schema — 4 main tables: `Item`, `ItemRelations`, `ItemTypes`, `ItemRelationTypes`; and a couple log tables `AgentLog` agent `AgentQueueItem`.
+This will create the StorytimeDb schema — 4 main tables: `Item`, `ItemRelations`, `ItemTypes`, `ItemRelationTypes`; and a couple log tables `AgentLog` and `AgentQueueItem`.
 
 ## Run
 
-Set the StorytimeApp project as startup and press **F5**. Then run the WinForms project. You will need to add the projects using right click menu.
+Set the StorytimeApp project as startup and press **F5**. You will need to add the projects using right click menu.
 
 ## MCP Server 
 
@@ -64,6 +64,6 @@ The codebase is designed to be explored with an AI assistant.  I would recommend
 
 Clone it, open it up, and ask Claude or another LLM to walk you through any part of it.
 
-Have fun, and use the tickets to chat if you like or give feedback! This is an early release, mainly a learning excersize, and I would love to know what you think.  
+Have fun, and use the tickets to chat if you like or give feedback! This is an early release, mainly a learning excercise, and I would love to know what you think.  
 
 Cheers Matt.
