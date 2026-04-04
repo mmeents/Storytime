@@ -52,6 +52,7 @@
       treeList = new ImageList(components);
       tabControl1 = new TabControl();
       tpBrowse = new TabPage();
+      lbLaunchCmd = new LinkLabel();
       label6 = new Label();
       tbTestOut = new TextBox();
       lbLMStudioModels = new ListBox();
@@ -93,7 +94,7 @@
       cbExportRecurse = new CheckBox();
       btnExport = new Button();
       fclbDescription = new FastColoredTextBoxNS.FastColoredTextBox();
-      lbLaunchCmd = new LinkLabel();
+      btnArchive = new Button();
       ((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
       splitContainer1.Panel1.SuspendLayout();
       splitContainer1.Panel2.SuspendLayout();
@@ -148,11 +149,11 @@
       // 
       // btnReloadTree
       // 
-      btnReloadTree.Location = new Point(3, 38);
+      btnReloadTree.Location = new Point(12, 12);
       btnReloadTree.Name = "btnReloadTree";
-      btnReloadTree.Size = new Size(137, 23);
+      btnReloadTree.Size = new Size(180, 41);
       btnReloadTree.TabIndex = 0;
-      btnReloadTree.Text = "Agents done Reload";
+      btnReloadTree.Text = "Agents are done Reload";
       btnReloadTree.UseVisualStyleBackColor = true;
       btnReloadTree.Click += btnReloadTree_Click;
       // 
@@ -361,6 +362,17 @@
       tpBrowse.Text = "Settings";
       tpBrowse.UseVisualStyleBackColor = true;
       // 
+      // lbLaunchCmd
+      // 
+      lbLaunchCmd.AutoSize = true;
+      lbLaunchCmd.Location = new Point(162, 22);
+      lbLaunchCmd.Name = "lbLaunchCmd";
+      lbLaunchCmd.Size = new Size(31, 15);
+      lbLaunchCmd.TabIndex = 12;
+      lbLaunchCmd.TabStop = true;
+      lbLaunchCmd.Text = "cmd";
+      lbLaunchCmd.LinkClicked += lbLaunchCmd_LinkClicked;
+      // 
       // label6
       // 
       label6.AutoSize = true;
@@ -475,6 +487,7 @@
       // 
       // tpItems
       // 
+      tpItems.Controls.Add(btnArchive);
       tpItems.Controls.Add(btnCancelRelation);
       tpItems.Controls.Add(btnUpdateRelation);
       tpItems.Controls.Add(label7);
@@ -805,6 +818,7 @@
       fclbDescription.DefaultMarkerSize = 8;
       fclbDescription.DisabledColor = Color.FromArgb(100, 180, 180, 180);
       fclbDescription.FindForm = null;
+      fclbDescription.Font = new Font("Courier New", 9.75F);
       fclbDescription.GoToForm = null;
       fclbDescription.Hotkeys = resources.GetString("fclbDescription.Hotkeys");
       fclbDescription.IsReplaceMode = false;
@@ -820,16 +834,16 @@
       fclbDescription.Zoom = 100;
       fclbDescription.TextChanged += fclbDescription_TextChanged;
       // 
-      // lbLaunchCmd
+      // btnArchive
       // 
-      lbLaunchCmd.AutoSize = true;
-      lbLaunchCmd.Location = new Point(162, 22);
-      lbLaunchCmd.Name = "lbLaunchCmd";
-      lbLaunchCmd.Size = new Size(31, 15);
-      lbLaunchCmd.TabIndex = 12;
-      lbLaunchCmd.TabStop = true;
-      lbLaunchCmd.Text = "cmd";
-      lbLaunchCmd.LinkClicked += lbLaunchCmd_LinkClicked;
+      btnArchive.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+      btnArchive.Location = new Point(466, 133);
+      btnArchive.Name = "btnArchive";
+      btnArchive.Size = new Size(75, 23);
+      btnArchive.TabIndex = 23;
+      btnArchive.Text = "Archive";
+      btnArchive.UseVisualStyleBackColor = true;
+      btnArchive.Click += btnArchive_Click;
       // 
       // Form1
       // 
@@ -933,5 +947,6 @@
     private Button btnAbortExport;
     private Button btnUpdateExport;
     private LinkLabel lbLaunchCmd;
+    private Button btnArchive;
   }
 }

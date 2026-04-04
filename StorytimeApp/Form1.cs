@@ -788,6 +788,19 @@ namespace StorytimeAr {
       }
     }
 
+    private void btnArchive_Click(object sender, EventArgs e) {
+      if (_selectedNode != null && _selectedNode.Item != null) {
+        var confirmResult = MessageBox.Show($"Are you sure you want to archive '{_selectedNode.Item.Name}'? This will remove it from the tree but keep it in the database.", "Confirm Archive", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+        if (confirmResult == DialogResult.Yes) {
+          _selectedNode.Item.IsActive = false;          
+          _appDataModuleService.UpdateItem(_selectedNode.Item);
+          var newParent = _selectedNode.Parent;      
+          var archivedNode = _selectedNode;
+          tvKb.SelectedNode = newParent;  // this sets the selected node.
+          tvKb.Nodes.Remove(archivedNode);
+        }
+      }
+    }
 
     #endregion
 
@@ -937,7 +950,7 @@ namespace StorytimeAr {
       }
     }
 
-    
+
     private void lbLinkExport_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e) {
       // Open the folder containing the Claude executable configurations.  Claude code should be configured in your path.
       try {
@@ -991,6 +1004,7 @@ namespace StorytimeAr {
     }
 
     #endregion
+
 
 
 
