@@ -1316,6 +1316,7 @@ namespace StorytimeAr {
 
         // ── Beats → CallSheet ─────────────────────────────────────────────────
         if (workingTypeId < (int)TargetDepth && workingTypeId == (int)StItemType.Beat && btnStartStop.Text == "Stop") {
+          workingTypeId = (int)StItemType.CallSheet;
           DoUpdateWorkingMessage($"Running Director for {item.Name}");
           await _mediator.Send(new GenerateCallSheetCommand(storyId, workingId));
           item = await _mediator.Send(new GetItemByIdQuery(workingId, true));
