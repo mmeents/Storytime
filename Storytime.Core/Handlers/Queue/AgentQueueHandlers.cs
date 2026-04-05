@@ -28,7 +28,7 @@ namespace Storytime.Core.Handlers.Queue {
         Status = AgentQueueStatus.Pending,
         ScheduledAt = DateTime.UtcNow
       };
-      _context.AgentQueue.Add(entry);
+      _context.AgentQueueItems.Add(entry);
       await _context.SaveChangesAsync(cancellationToken);
       return entry;
     }
@@ -36,18 +36,16 @@ namespace Storytime.Core.Handlers.Queue {
 
   // ── Get Next Pending ───────────────────────────────────────────────────────
 
-  public record GetNextAgentQueueItemQuery() : IRequest<AgentQueueItem?>;
+  public record GetAgentQueueItemById(int Id) : IRequest<AgentQueueItem?>;
 
-  public class GetNextAgentQueueItemQueryHandler : IRequestHandler<GetNextAgentQueueItemQuery, AgentQueueItem?> {
+  public class GetAgentQueueItemByIdQueryHandler : IRequestHandler<GetAgentQueueItemById, AgentQueueItem?> {
     private readonly StorytimeDbContext _context;
-    public GetNextAgentQueueItemQueryHandler(StorytimeDbContext context) {
+    public GetAgentQueueItemByIdQueryHandler(StorytimeDbContext context) {
       _context = context;
     }
-    public async Task<AgentQueueItem?> Handle(GetNextAgentQueueItemQuery request, CancellationToken cancellationToken) {
-      return await _context.AgentQueue
-        .Where(q => q.Status == AgentQueueStatus.Pending)
-        .OrderBy(q => q.ScheduledAt)
-        .FirstOrDefaultAsync(cancellationToken);
+    public async Task<AgentQueueItem?> Handle(GetAgentQueueItemById request, CancellationToken cancellationToken) {
+      return await _context.AgentQueueItems
+        .Where(q => q.Id == request.Id).FirstOrDefaultAsync(cancellationToken);
     }
   }
 
@@ -65,7 +63,7 @@ namespace Storytime.Core.Handlers.Queue {
       _context = context;
     }
     public async Task<AgentQueueItem?> Handle(UpdateAgentQueueItemStatusCommand request, CancellationToken cancellationToken) {
-      var entry = await _context.AgentQueue.FindAsync(new object[] { request.Id }, cancellationToken);
+      var entry = await _context.AgentQueueItems.FindAsync(new object[] { request.Id }, cancellationToken);
       if (entry == null) return null;
       entry.Status = request.Status;
       entry.ErrorMessage = request.ErrorMessage;
@@ -88,10 +86,10 @@ namespace Storytime.Core.Handlers.Queue {
       _context = context;
     }
     public async Task<List<AgentQueueItem>> Handle(GetAgentQueueQuery request, CancellationToken cancellationToken) {
-      var query = _context.AgentQueue.AsQueryable();
+      var query = _context.AgentQueueItems.AsQueryable();
       if (request.StatusFilter.HasValue)
         query = query.Where(q => q.Status == request.StatusFilter.Value);
-      return await query.OrderByDescending(q => q.ScheduledAt).ToListAsync(cancellationToken);
+      return await query.OrderBy(q => q.ScheduledAt).ToListAsync(cancellationToken);
     }
   }
 

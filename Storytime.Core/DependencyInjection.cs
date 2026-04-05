@@ -29,6 +29,8 @@ namespace Storytime.Core {
       services.AddScoped<IDirectorAgent, DirectorAgent>();
       services.AddScoped<ISetAgent, SetAgent>();
       services.AddScoped<IObserverAgent, ObserverAgent>();
+
+      services.AddScoped<IAppSettingService, AppSettingService>();
       return services;
     }
 

@@ -1,4 +1,4 @@
-using FastColoredTextBoxNS.Types;
+﻿using FastColoredTextBoxNS.Types;
 using KB.Core.Entities;
 using KB.Core.Models;
 using MediatR;
@@ -8,14 +8,20 @@ using Newtonsoft.Json.Linq;
 using Storytime.Core;
 using Storytime.Core.Agents;
 using Storytime.Core.Constants;
+using Storytime.Core.Entities;
+using Storytime.Core.Handlers.Items;
+using Storytime.Core.Handlers.LmStudio;
 using Storytime.Core.Service;
 using StorytimeAr.Models;
+using System.Collections.Concurrent;
 using System.ComponentModel;
 using System.ComponentModel.Design;
 using System.Runtime;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Forms;
 
@@ -42,6 +48,7 @@ namespace StorytimeAr {
     #region TreeView Loading and Setup
     private async void Form1_Shown(object sender, EventArgs e) {
       await LoadProjectItems();
+      await ReloadSchedule();
     }
 
     private async Task LoadProjectItems() {
@@ -211,10 +218,77 @@ namespace StorytimeAr {
 
         lbExportFilePath.Text = Path.Combine(Cx.ExportPath, $"{item.ItemTypeName}{item.Id}-{item.Name.UrlSafe()}.md");
         lbExportItemName.Text = $"{item.Name}";
+        lbScheduleItem.Text = item.Name;
         fclbDescription.DataBindings.Clear();
         fclbDescription.DataBindings.Add("Text", _selectedNode.Item, "Description", true, DataSourceUpdateMode.OnPropertyChanged);
+        SetupRbItemData();
         _inSetupTpItems = false;
         ItemTabDirty = false;
+      }
+    }
+
+    private void SetupRbItemData() {
+      if (_selectedNode != null && _selectedNode.Item != null) {
+
+        var selectedItemTypeId = _selectedNode.Item.ItemTypeId;
+        bool isProperty = false;
+        switch (selectedItemTypeId) {
+          case (int)StItemType.Project:
+            rbStory.Checked = true;
+            btnAddToSchedule.Enabled = true;
+            break;
+          case (int)StItemType.Story:
+            rbScene.Checked = true;
+            btnAddToSchedule.Enabled = true;
+            break;
+          case (int)StItemType.Scene:
+            rbBeat.Checked = true;
+            btnAddToSchedule.Enabled = true;
+            break;
+          case (int)StItemType.Beat:
+            rbCallSheet.Checked = true;
+            btnAddToSchedule.Enabled = true;
+            break;
+          case (int)StItemType.CallSheet:
+            rbPerformance.Checked = true;
+            btnAddToSchedule.Enabled = true;
+            break;
+          case (int)StItemType.Performance:
+            rbDeliverable.Checked = true;
+            btnAddToSchedule.Enabled = true;
+            break;
+          default:
+            rbStory.Enabled = false;
+            rbStory.Checked = false;
+            rbScene.Enabled = false;
+            rbScene.Checked = false;
+            rbBeat.Enabled = false;
+            rbBeat.Checked = false;
+            rbCallSheet.Enabled = false;
+            rbCallSheet.Checked = false;
+            rbPerformance.Enabled = false;
+            rbPerformance.Checked = false;
+            rbDeliverable.Enabled = false;
+            rbDeliverable.Checked = false;
+            btnAddToSchedule.Enabled = false;
+            isProperty = true;
+            break;
+        }
+        if (!isProperty) {
+          rbStory.Enabled = !(selectedItemTypeId >= (int)StItemType.Story);
+          rbScene.Enabled = !(selectedItemTypeId >= (int)StItemType.Scene);
+          rbBeat.Enabled = !(selectedItemTypeId >= (int)StItemType.Beat);
+          rbCallSheet.Enabled = !(selectedItemTypeId >= (int)StItemType.CallSheet);
+          rbPerformance.Enabled = !(selectedItemTypeId >= (int)StItemType.Performance);
+          rbDeliverable.Enabled = !(selectedItemTypeId >= (int)StItemType.Deliverable);
+        }
+      } else {
+        rbStory.Enabled = false;
+        rbScene.Enabled = false;
+        rbBeat.Enabled = false;
+        rbCallSheet.Enabled = false;
+        rbPerformance.Enabled = false;
+        btnAddToSchedule.Enabled = false;
       }
     }
 
@@ -606,7 +680,7 @@ namespace StorytimeAr {
         try {
           var storyNode = _selectedNode.FindAncestorOfType(StItemType.Story);
           var storyId = storyNode!.Item!.Id;
-          await _appDataModuleService.GeneratePerformanceForCallSheet(_selectedNode.Item.Id, storyId);
+          await _appDataModuleService.GeneratePerformanceForCallSheet(storyId, _selectedNode.Item.Id);
           btnReloadTree.Visible = true;
         } catch (Exception ex) {
           _logger.LogError(ex, "Error generating performance.");
@@ -792,9 +866,9 @@ namespace StorytimeAr {
       if (_selectedNode != null && _selectedNode.Item != null) {
         var confirmResult = MessageBox.Show($"Are you sure you want to archive '{_selectedNode.Item.Name}'? This will remove it from the tree but keep it in the database.", "Confirm Archive", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
         if (confirmResult == DialogResult.Yes) {
-          _selectedNode.Item.IsActive = false;          
+          _selectedNode.Item.IsActive = false;
           _appDataModuleService.UpdateItem(_selectedNode.Item);
-          var newParent = _selectedNode.Parent;      
+          var newParent = _selectedNode.Parent;
           var archivedNode = _selectedNode;
           tvKb.SelectedNode = newParent;  // this sets the selected node.
           tvKb.Nodes.Remove(archivedNode);
@@ -1005,8 +1079,375 @@ namespace StorytimeAr {
 
     #endregion
 
+    #region Schedule Tab Handlers
+
+    private async void btnAddToSchedule_Click(object sender, EventArgs e) {
+      if (_selectedNode != null && _selectedNode?.Item != null && rbDeliverable.Enabled) {
+        var itemId = _selectedNode.Item.Id;
+        var itemCurrentTypeId = _selectedNode.Item.ItemTypeId;
+        var itemDestinationTypeId = StItemType.Project;
+
+        if (rbStory.Checked) {
+          itemDestinationTypeId = StItemType.Story;
+        } else if (rbScene.Checked) {
+          itemDestinationTypeId = StItemType.Scene;
+        } else if (rbBeat.Checked) {
+          itemDestinationTypeId = StItemType.Beat;
+        } else if (rbCallSheet.Checked) {
+          itemDestinationTypeId = StItemType.CallSheet;
+        } else if (rbPerformance.Checked) {
+          itemDestinationTypeId = StItemType.Performance;
+        } else if (rbDeliverable.Checked) {
+          itemDestinationTypeId = StItemType.Deliverable;
+        }
+
+        if (itemDestinationTypeId == 0) {
+          MessageBox.Show("Faild to translate destination type.");
+          return;
+        }
+
+        var newQueueItem = await _appDataModuleService.AddToSchedule(itemId, itemDestinationTypeId);
+        await ReloadSchedule();
+
+      }
+      return;
+    }
+
+    private bool _inScheduleReload = false;
+    private ConcurrentDictionary<int, AgentQueueItem> _todoCache = new ConcurrentDictionary<int, AgentQueueItem>();
+    private async Task ReloadSchedule() {
+
+      var schedule = await _appDataModuleService.GetAgentQueueQuery();
+      if (schedule != null) {
+        _inScheduleReload = true;
+        try {
+
+          foreach (var item in schedule) {
+            string listing = "";
+            var itemId = item.ItemId;
+            if (itemId != 0) {
+              listing = $"{item.Id}: {_itemCache[itemId].Name}";
+              _todoCache[item.Id] = item;
+              var existingId = lbAgentQueue.Items.IndexOf(listing);
+              if (existingId == -1) {
+                var indx = lbAgentQueue.Items.Add(listing);
+              }
+            }
+          }
+
+          if (schedule.Count > 0) { 
+            lbAgentQueue.SelectedIndex = 0;
+            btnDeleteQueueItem.Enabled = true;
+          } else { 
+            btnDeleteQueueItem.Enabled = false;
+          }
+        } finally {
+          _inScheduleReload = false;
+        }
+
+      }
+    }
 
 
+    private bool _engineRunning = false;
+    private bool _isStopping = false;
+
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+    public bool EngineRunning {
+      get { return _engineRunning; }
+      set {        
+        _engineRunning = value;
+        if (_engineRunning) {
+          lbWorkingStatus.Text = "Status: Pipeline Running";
+          btnStartStop.Text = "Stop";
+          btnRunNextScheduled.Enabled = false;
+        } else {
+          lbWorkingStatus.Text = "Status: Pipeline Idle";
+          btnStartStop.Text = "Start";
+          btnRunNextScheduled.Enabled = true;          
+        }
+      }
+    }
+
+    private void btnStartStop_Click(object sender, EventArgs e) {      
+      if (btnStartStop.Text == "Start") {
+        EngineRunning = true;
+        runTimer.Enabled = true;
+      } else {
+        runTimer.Enabled = false;
+        EngineRunning = false;
+      }      
+    }
+
+    private bool _isRunningFromTimer = false;
+    private async void runTimer_Tick(object sender, EventArgs e) {
+      runTimer.Enabled = false;
+      _isRunningFromTimer = true;
+      try {
+        if (btnStartStop.Text == "Stop" ) {
+          await RunNextScheduledAsync();
+        }
+      } finally {
+        _isRunningFromTimer = false;
+        if (btnStartStop.Text == "Stop" ) {
+          runTimer.Enabled = true;
+          btnRunNextScheduled.Enabled = false;
+        }
+      }
+    }
+
+    private async void btnRunNextScheduled_Click(object sender, EventArgs e) {
+      await RunNextScheduledAsync();
+    }
+
+    private async Task RunNextScheduledAsync() {
+
+      if (lbAgentQueue.Items.Count == 0) {
+        // this should stop it when queue is empty.
+        DoUpdateWorkingMessage("Finished");
+        return;
+      }
+      if (_inScheduleReload ) {
+        MessageBox.Show("Schedule is loading, please try again.");
+        return;
+      }
+      if (btnRunNextScheduled.Enabled) btnRunNextScheduled.Enabled = false;     
+
+      string nextQueueItemString = "";
+      int nextQueueItemId = 0;
+      AgentQueueItem? anextItem = null;
+      IMediator? _mediator = null;
+      StItemType TargetDepth = StItemType.Project;
+      var itemId = 0;
+      using var _scope = _scopeFactory.CreateScope();
+      _mediator = _scope.ServiceProvider.GetRequiredService<IMediator>();
+      try {
+
+        var lbitem = lbAgentQueue.Items;
+        nextQueueItemString = (string)lbitem[0];
+        nextQueueItemId = nextQueueItemString.Split(':')[0].AsInt();
+        anextItem = _todoCache.Keys.Contains(nextQueueItemId) ? _todoCache[nextQueueItemId] : null;
+        if (anextItem == null) {
+          MessageBox.Show("didn't find next todo in cache. Maybe restart?");
+          return;
+        }
+        TargetDepth = (StItemType)anextItem.TargetDepth;
+        itemId = anextItem.ItemId;
+        await _appDataModuleService.UpateAgentQueueItemStatusCommand(anextItem.Id, AgentQueueStatus.Running);
+        DoPopOnQueueMessage("");
+
+      } catch (Exception ex1) {
+        MessageBox.Show("Error failed to parse next items id.");
+        _logger.LogError(ex1, "failed to parse next item");
+        return;
+      }
+
+
+      try {
+        DoUpdateWorkingMessage($"starting run {nextQueueItemId}");
+        if (btnStartStop.Text == "Start" && !_isRunningFromTimer) {
+          btnStartStop.Text = "Stop";
+        }
+        var item = await _mediator.Send(new GetItemByIdQuery(itemId, true));
+        if (item == null) return;
+        DoPublishProgress("Starting (" + Cx.AsString((StItemType)item.ItemTypeId) + "):" + nextQueueItemString + " destination being " + Cx.AsString(TargetDepth));
+
+        int storyId = 0;
+        var Started = DateTime.UtcNow;
+        var workingTypeId = item.ItemTypeId;
+        var workingId = item.Id;
+        var hasBeats = false;
+
+        if (item.ItemTypeId == (int)StItemType.Scene) {
+          hasBeats = item.Relations.Any(r => r.RelationTypeId == (int)StRelationType.Contains);
+        }
+
+        // Pre-resolve storyId for any item deeper than Story
+        if (workingTypeId != (int)StItemType.Project && workingTypeId != (int)StItemType.Story) {
+          var aStoryId = await _mediator.Send(new GetAncestorIdByTypeQuery(workingId, StItemType.Story));
+          if (aStoryId == null) return;
+          storyId = aStoryId.Value;
+        }
+
+        // ── Project → Story ──────────────────────────────────────────────────
+        if (workingTypeId == (int)StItemType.Project && btnStartStop.Text == "Stop") {
+          DoUpdateWorkingMessage($"Running Story for {item.Name}");
+          await _mediator.Send(new GenerateStoryCommand(workingId));
+          item = await _mediator.Send(new GetItemByIdQuery(itemId, true));
+          if (item == null) return;
+          var nextItem = item.Relations
+            .Where(r => r.RelationTypeId == (int)StRelationType.Contains && r.Established > Started)
+            .OrderByDescending(r => r.Established).ToList();
+          if (nextItem.Count == 0) return;
+          workingId = nextItem[0].RelatedItemId!.Value;
+          item = await _mediator.Send(new GetItemByIdQuery(workingId, true));
+          DoPublishProgress("Added (" + Cx.AsString((StItemType)item.ItemTypeId) + "):" + nextQueueItemString + " destination being " + Cx.AsString(TargetDepth));
+          if (item == null) return;
+          workingTypeId = item.ItemTypeId;
+        }
+
+        // ── Story → Scene ─────────────────────────────────────────────────────
+        if (workingTypeId < (int)TargetDepth && workingTypeId == (int)StItemType.Story && btnStartStop.Text == "Stop") {
+          DoUpdateWorkingMessage($"Running Scene for {item.Name}");
+          storyId = workingId;
+          await _mediator.Send(new GenerateSceneAndCharacterForStoryCommand(workingId));
+          item = await _mediator.Send(new GetItemByIdQuery(workingId, true));
+          if (item == null) return;
+          var nextItem = item.Relations
+            .Where(r => r.RelationTypeId == (int)StRelationType.Contains && r.Established > Started)
+            .OrderByDescending(r => r.Established).ToList();
+          if (nextItem.Count == 0) return;
+          workingId = nextItem[0].RelatedItemId!.Value;  // sceneId
+          item = await _mediator.Send(new GetItemByIdQuery(workingId, true));
+          DoPublishProgress("Added (" + Cx.AsString((StItemType)item.ItemTypeId) + "):" + nextQueueItemString + " destination being " + Cx.AsString(TargetDepth));
+          if (item == null) return;
+          workingTypeId = item.ItemTypeId; // Scene        
+        }
+
+        // ── Scene → Beats ─────────────────────────────────────────────────────
+        if (workingTypeId < (int)TargetDepth && workingTypeId == (int)StItemType.Scene && btnStartStop.Text == "Stop") {
+          DoUpdateWorkingMessage($"Running Beats for {item.Name}");
+          if (!hasBeats) {
+            await _mediator.Send(new GenerateBeatsForSceneCommand(storyId, workingId));
+          }
+          // advance regardless — menu entry is always on scene, beats live under it
+          workingTypeId = (int)StItemType.Beat;
+        }
+
+        // ── Beats → CallSheet ─────────────────────────────────────────────────
+        if (workingTypeId < (int)TargetDepth && workingTypeId == (int)StItemType.Beat && btnStartStop.Text == "Stop") {
+          DoUpdateWorkingMessage($"Running Director for {item.Name}");
+          await _mediator.Send(new GenerateCallSheetCommand(storyId, workingId));
+          item = await _mediator.Send(new GetItemByIdQuery(workingId, true));
+          if (item == null) return;
+          var nextItem = item.Relations
+            .Where(r => r.RelationTypeId == (int)StRelationType.DirectedAs && r.Established > Started)
+            .OrderByDescending(r => r.Established).ToList();
+          if (nextItem.Count == 0) return;
+          workingId = nextItem[0].RelatedItemId!.Value; // callSheetId
+          item = await _mediator.Send(new GetItemByIdQuery(workingId, true));
+          if (item == null) return;
+          DoPublishProgress("Added (" + Cx.AsString((StItemType)item.ItemTypeId) + "):" + nextQueueItemString + " destination being " + Cx.AsString(TargetDepth));
+          workingTypeId = item.ItemTypeId; // CallSheet
+        }
+
+        // ── CallSheet → Performance ───────────────────────────────────────────
+        if (workingTypeId < (int)TargetDepth && workingTypeId == (int)StItemType.CallSheet && btnStartStop.Text == "Stop") {
+          DoUpdateWorkingMessage($"Running Performance for {item.Name}");
+          await _mediator.Send(new GeneratePerformanceForCallSheetCommand(storyId, workingId));
+          item = await _mediator.Send(new GetItemByIdQuery(workingId, true));
+          if (item == null) return;
+          var nextItem = item.Relations
+            .Where(r => r.RelationTypeId == (int)StRelationType.Produces && r.Established > Started)
+            .OrderByDescending(r => r.Established).ToList();
+          if (nextItem.Count == 0) return;
+          workingId = nextItem[0].RelatedItemId!.Value; // performanceId
+          item = await _mediator.Send(new GetItemByIdQuery(workingId, true));
+          if (item == null) return;
+          DoPublishProgress("Added (" + Cx.AsString((StItemType)item.ItemTypeId) + "):" + nextQueueItemString + " destination being " + Cx.AsString(TargetDepth));
+          workingTypeId = item.ItemTypeId; // Performance
+        }
+
+        // ── Performance → Deliverable ─────────────────────────────────────────
+        if (workingTypeId < (int)TargetDepth && workingTypeId == (int)StItemType.Performance && btnStartStop.Text == "Stop") {
+          DoUpdateWorkingMessage($"Running Deliverables for {item.Name}");
+          await _mediator.Send(new GenerateDeliverableCommand(workingId));
+          DoPublishProgress("Added (" + Cx.AsString(TargetDepth) + "):" + nextQueueItemString + " destination being " + Cx.AsString(TargetDepth));
+        }
+
+        await _appDataModuleService.UpateAgentQueueItemStatusCommand(anextItem.Id, AgentQueueStatus.Completed);
+      } catch (Exception ex) {
+
+        _logger.LogError(ex, "Error running scheduled item.");
+        if (anextItem != null) {
+          await _appDataModuleService.UpateAgentQueueItemStatusCommand(anextItem.Id, AgentQueueStatus.Failed);
+        }
+
+      } finally {       
+        DoUpdateWorkingMessage("Finished");
+        DoPublishProgress($"Run {nextQueueItemId} Completed.");
+      }
+
+    }
+
+
+    private void DoUpdateWorkingMessage(string message) {
+      if (this.InvokeRequired) {
+        this.Invoke(new LogMessageDelegate(DoUpdateWorkingMessage), new object[] { message });
+      } else {
+        if (message == "Finished" && (!_isRunningFromTimer || lbAgentQueue.Items.Count == 0)) {
+          EngineRunning = false;
+        }        
+        lbRunItemName.Text = message;
+        if (!btnReloadTree.Visible) btnReloadTree.Visible = true;
+      }
+    }
+
+    private void DoPublishProgress(string message) {
+      if (this.InvokeRequired) {
+        this.Invoke(new LogMessageDelegate(DoPublishProgress), new object[] { message });
+      } else {
+        StringBuilder sb = new StringBuilder();
+        sb.AppendLine($"[{DateTime.Now:HH:mm:ss}] {message}");
+        sb.Append(edRunLogOut.Text);
+        string finalMessage = sb.ToString();
+        if (finalMessage.Length > 10000) {
+          finalMessage = finalMessage.Substring(0, 10000); // Keep only the last 10,000 characters
+        }
+        edRunLogOut.Text = finalMessage;
+      }
+    }
+
+    private void DoPopOnQueueMessage(string message) {
+      if (this.InvokeRequired) {
+        this.Invoke(new LogMessageDelegate(DoPopOnQueueMessage), new object[] { message });
+      } else {
+        lbAgentQueue.Items.RemoveAt(0);
+      }
+    }
+
+    private async void btnDeleteQueueItem_Click(object sender, EventArgs e) {
+      var indx = lbAgentQueue.SelectedIndex;
+      if (indx == -1) {
+        MessageBox.Show("Please select an item to delete.");
+        return;
+      }
+      var lbitem = lbAgentQueue.Items;
+      var nextQueueItemString = (string)lbitem[indx];
+      var nextQueueItemId = nextQueueItemString.Split(':')[0].AsInt();
+      var confirmResult = MessageBox.Show($"Are you sure you want to delete queue item '{nextQueueItemString}'?", "Confirm Delete", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+      if (confirmResult == DialogResult.Yes) { 
+        await _appDataModuleService.UpateAgentQueueItemStatusCommand(nextQueueItemId, AgentQueueStatus.Cancelled);
+        lbAgentQueue.Items.RemoveAt(indx);
+      }
+    }
+
+    #endregion
+
+    #region Form resize and layout fixes.
+    private void tabControl1_SelectedIndexChanged(object sender, EventArgs e) {
+      if (tabControl1.SelectedTab == tpExport) {
+        Form1_Resize(sender, e);
+      }
+    }
+
+    private bool _inResize = false;
+    private void Form1_Resize(object sender, EventArgs e) {
+      if (_inResize) return;
+      _inResize = true;
+      fclbDescription.Height = tabControl1.Height - lbExportItemName.Top - (lbExportItemName.Height * 3);
+
+      var sumHorizontal = lbItemName.Width + lbItemName.Left + edItemName.Width + 8;
+      if (sumHorizontal < tabControl1.Width - 10 || sumHorizontal > tabControl1.Width) {
+        int newEditWidth = tabControl1.Width - lbItemName.Width - lbItemName.Left - 16;
+        edItemName.Width = newEditWidth;
+        edItemType.Width = newEditWidth;
+        edItemDesc.Width = newEditWidth;
+        edItemData.Width = newEditWidth;
+      }
+      _inResize = false;
+    }
+    #endregion
 
 
   }

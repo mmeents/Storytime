@@ -8,7 +8,8 @@ namespace Storytime.Core {
   public class StorytimeDbContext : KbDbContext {
     public StorytimeDbContext(DbContextOptions<StorytimeDbContext> options) : base(options) { }
     public DbSet<AgentLog> AgentLogs => Set<AgentLog>();
-    public DbSet<AgentQueueItem> AgentQueue { get; set; }
+    public DbSet<AgentQueueItem> AgentQueueItems => Set<AgentQueueItem>();
+    public DbSet<AppSetting> AppSettings => Set<AppSetting>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder) {
       base.OnModelCreating(modelBuilder);      

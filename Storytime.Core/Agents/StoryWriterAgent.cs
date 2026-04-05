@@ -16,6 +16,7 @@ namespace Storytime.Core.Agents {
     private readonly IMediator _mediator;    
     public StoryWriterAgent(ILocalBaseAgentFactory baseAgentFactory, IMediator mediator, StorytimeDbContext context) {
       _baseAgent = baseAgentFactory.Create();
+      if (_baseAgent.ToolsToUse.Count > 0) _baseAgent.ToolsToUse.Clear();
       _baseAgent.ToolsToUse.Add(Cx.LMStudioStorytimeMcpToolName);
       _baseAgent.Name = $"Sophie the Story Writer at {Cx.AppName}";
       _mediator = mediator;      

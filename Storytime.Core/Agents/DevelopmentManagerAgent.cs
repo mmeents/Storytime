@@ -21,6 +21,7 @@ namespace Storytime.Core.Agents {
 
     public DevelopmentManagerAgent(ILocalBaseAgentFactory baseAgentFactory, StorytimeDbContext context, IMediator mediator) {
       _baseAgent = baseAgentFactory.Create();
+      if (_baseAgent.ToolsToUse.Count > 0) _baseAgent.ToolsToUse.Clear();
       _baseAgent.ToolsToUse.Add(Cx.LMStudioStorytimeMcpToolName);
       _baseAgent.Name = $"Dave the Development Manager at {Cx.AppName}";
       _context = context;

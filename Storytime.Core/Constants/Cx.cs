@@ -49,6 +49,26 @@ namespace Storytime.Core.Constants {
     public const string CmdAddCharacterAction = "add-character-action-to-performance";
     public const string CmdAddCharacterSpeak = "add-character-speak-to-performance";
 
+    public static string AsString(this StItemType type) { 
+        return type switch {
+            StItemType.Project => "Project",
+            StItemType.Story => "Story",
+            StItemType.Scene => "Scene",
+            StItemType.Beat => "Beat",
+            StItemType.Character => "Character",
+            StItemType.Location => "Location",
+            StItemType.Rule => "Rule",
+            StItemType.Tone => "Tone",
+            StItemType.CallSheet => "Call Sheet",
+            StItemType.Performance => "Performance",
+            StItemType.Deliverable => "Deliverable",
+            _ => throw new ArgumentOutOfRangeException(nameof(type), $"Not expected item type value: {type}")
+        };
+    }
+
+    public static int AsInt(this string value) {
+      return int.Parse(value);
+    }
 
     public static char[] InvalidFileNameChars() => Path.GetInvalidFileNameChars()
       .Concat(MyInvalidList()).ToArray();

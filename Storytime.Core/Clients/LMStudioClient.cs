@@ -8,6 +8,7 @@ using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Storytime.Core.Models;
 using Storytime.Core.Constants;
+using Microsoft.Extensions.Logging;
 
 namespace Storytime.Core.Clients {
   public interface ILmStudioClient {
@@ -15,16 +16,10 @@ namespace Storytime.Core.Clients {
     Task<ModelsResponse> GetModelsAsync(CancellationToken ct = default);
     Task<List<LmModel>> GetLlmModelsAsync(CancellationToken ct = default);
     Task<ChatResponse> ChatAsync(ChatRequest request, CancellationToken ct = default);
-    Task<ChatResponse> ChatAsync(
-        string model,
-        string prompt,
-        string? systemPrompt = null,
-        double temperature = 0,
-        int? contextLength = null,
-        CancellationToken ct = default);
   }
 
   public class LmStudioClient : ILmStudioClient, IDisposable {
+    private readonly ILogger<ILmStudioClient> _logger;
 
     private static readonly JsonSerializerOptions JsonOptions = new() {
       DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
@@ -54,16 +49,11 @@ namespace Storytime.Core.Clients {
       }
     }
         
-    public LmStudioClient() {
-      _http = new HttpClient { BaseAddress = new Uri(BaseUrl.TrimEnd('/') + "/"), Timeout = Timeout.InfiniteTimeSpan };
-      BaseUrl = Cx.LMStudioUrl;
+    public LmStudioClient(ILogger<ILmStudioClient> logger) {
+      _logger = logger;
+      _http = new HttpClient { BaseAddress = new Uri(BaseUrl.TrimEnd('/') + "/"), Timeout = Timeout.InfiniteTimeSpan };      
       ApiToken = Cx.LMStudioApiKey;
-    }
-    public LmStudioClient(string baseUrl, string? apiToken = null) {
-      _http = new HttpClient { BaseAddress = new Uri(BaseUrl.TrimEnd('/') + "/"), Timeout = Timeout.InfiniteTimeSpan };
-      BaseUrl = baseUrl;
-      ApiToken = apiToken;
-    }
+    }    
 
     // ─────────────────────────────────────────────────────────
     // MODELS
@@ -89,33 +79,18 @@ namespace Storytime.Core.Clients {
 
     /// <summary>POST /api/v1/chat</summary>
     public async Task<ChatResponse> ChatAsync(ChatRequest request, CancellationToken ct = default) {
-      var httpResponse = await _http.PostAsJsonAsync("api/v1/chat", request, JsonOptions, ct);
-      httpResponse.EnsureSuccessStatusCode();
-      return await httpResponse.Content.ReadFromJsonAsync<ChatResponse>(JsonOptions, ct)
-             ?? throw new InvalidOperationException("Null response from /api/v1/chat");
-    }
+      try {
+        var httpResponse = await _http.PostAsJsonAsync("api/v1/chat", request, JsonOptions, ct);
+        httpResponse.EnsureSuccessStatusCode();
+        return await httpResponse.Content.ReadFromJsonAsync<ChatResponse>(JsonOptions, ct)
+          ?? throw new InvalidOperationException("Null response from /api/v1/chat");
 
-    /// <summary>Quick single-prompt helper.</summary>
-    public Task<ChatResponse> ChatAsync(
-        string model,
-        string prompt,
-        string? systemPrompt = null,
-        double temperature = 0,
-        int? contextLength = null,
-        CancellationToken ct = default) {
 
-      var request = new ChatRequest {
-        Model = model,
-        Input = prompt,
-        SystemPrompt = systemPrompt,
-        Temperature = temperature,
-        ContextLength = contextLength,
-        Integrations = [new PluginIntegration { Id = Cx.LMStudioStorytimeMcpToolName }]
-      };
-      var req = ChatRequest.Simple(model, prompt, systemPrompt);
-      req.Temperature = temperature;
-      req.ContextLength = contextLength;
-      return ChatAsync(req, ct);
+      } catch (Exception ex) {        
+        _logger.LogError(ex, "Error in ChatAsync: {Message}", ex.Message);
+        throw;
+      }
+      
     }
 
     public void Dispose() => _http.Dispose();

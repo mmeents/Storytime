@@ -1,5 +1,6 @@
 ﻿using Azure.Core;
 using KB.Core.Entities;
+using Storytime.Core.Entities;
 using KB.Core.Models;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -8,6 +9,8 @@ using Storytime.Core.Agents;
 using Storytime.Core.Handlers.Export;
 using Storytime.Core.Handlers.Items;
 using Storytime.Core.Models;
+using Storytime.Core.Handlers.Queue;
+
 
 
 namespace Storytime.Core.Service {
@@ -32,9 +35,14 @@ namespace Storytime.Core.Service {
     Task<bool> GenerateSceneAndCharacterForStory(int storyId);
     Task<bool> GenerateBeatsForScene(int storyId, int sceneId);
     Task<bool> GenerateCallSheetForStoryScene(int storyId, int sceneId);
-    Task<bool> GeneratePerformanceForCallSheet(int callSheetId, int storyId);
+    Task<bool> GeneratePerformanceForCallSheet( int storyId, int callSheetId);
     Task<bool> GenerateDeliverableForPerformance(int performanceId);
     Task<ExportItemCommandResult> ExportItem(int itemId, bool exportChildren, string exportPath);
+
+    Task<AgentQueueItem?> AddToSchedule(int itemId, StItemType targetDepth);
+    Task<AgentQueueItem?> GetAgentQueueItemById(int id);
+    Task<AgentQueueItem?> UpateAgentQueueItemStatusCommand(int id, AgentQueueStatus status, string? errorMessage = null);    
+    Task<List<AgentQueueItem>> GetAgentQueueQuery();
 
   }
 
@@ -272,11 +280,11 @@ namespace Storytime.Core.Service {
         return result;
     }
 
-    public async Task<bool> GeneratePerformanceForCallSheet(int callSheetId, int storyId) {
+    public async Task<bool> GeneratePerformanceForCallSheet(int storyId, int callSheetId) {
         using var scope = _scopeFactory.CreateScope();
         var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
         
-        var command = new Handlers.LmStudio.GeneratePerformanceForCallSheetCommand(callSheetId, storyId);
+        var command = new Handlers.LmStudio.GeneratePerformanceForCallSheetCommand(storyId, callSheetId);
         var result = await mediator.Send(command);
         return result;
     }
@@ -296,6 +304,38 @@ namespace Storytime.Core.Service {
         var result = await mediator.Send(command);
         return result;
     }
+
+    public async Task<AgentQueueItem?> AddToSchedule(int itemId, StItemType targetDepth) {
+        using var scope = _scopeFactory.CreateScope();
+        var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();        
+        var command = new AddAgentQueueItemCommand(itemId, targetDepth);
+            var result = await mediator.Send(command);
+            return result;
+    }
+
+    public async Task<AgentQueueItem?> UpateAgentQueueItemStatusCommand(int id, AgentQueueStatus status, string? errorMessage = null) {
+        using var scope = _scopeFactory.CreateScope();
+        var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+        var command = new UpdateAgentQueueItemStatusCommand(id, status, errorMessage);
+        var result = await mediator.Send(command);
+        return result;
+    }
+    public async Task<List<AgentQueueItem>> GetAgentQueueQuery() {
+        using var scope = _scopeFactory.CreateScope();
+        var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();        
+        var query = new GetAgentQueueQuery(AgentQueueStatus.Pending);
+        var result = await mediator.Send(query);
+        return result;
+    }
+
+    public async Task<AgentQueueItem?> GetAgentQueueItemById(int id) { 
+        using var scope = _scopeFactory.CreateScope();
+        var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+        var query = new GetAgentQueueItemById(id);
+        var result = await mediator.Send(query);
+        return result;
+    }
+
 
     private StorytimeDbContext GetDbContext() {
       var scope = _scopeFactory.CreateScope();

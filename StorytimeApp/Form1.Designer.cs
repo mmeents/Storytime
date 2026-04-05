@@ -65,6 +65,7 @@
       edLmStudioModel = new TextBox();
       btnGetLmStudioModels = new Button();
       tpItems = new TabPage();
+      btnArchive = new Button();
       btnCancelRelation = new Button();
       btnUpdateRelation = new Button();
       label7 = new Label();
@@ -85,6 +86,25 @@
       edItemDesc = new TextBox();
       edItemType = new ComboBox();
       edItemName = new TextBox();
+      tpSchedule = new TabPage();
+      btnDeleteQueueItem = new Button();
+      edRunLogOut = new TextBox();
+      lbRunItemName = new Label();
+      lbWorkingStatus = new Label();
+      btnRunNextScheduled = new Button();
+      btnStartStop = new Button();
+      btnAddToSchedule = new Button();
+      lbAgentQueue = new ListBox();
+      label5 = new Label();
+      tabControl2 = new TabControl();
+      tpScheduleJob = new TabPage();
+      rbDeliverable = new RadioButton();
+      rbPerformance = new RadioButton();
+      rbCallSheet = new RadioButton();
+      rbBeat = new RadioButton();
+      rbScene = new RadioButton();
+      rbStory = new RadioButton();
+      lbScheduleItem = new Label();
       tpExport = new TabPage();
       btnAbortExport = new Button();
       btnUpdateExport = new Button();
@@ -94,7 +114,7 @@
       cbExportRecurse = new CheckBox();
       btnExport = new Button();
       fclbDescription = new FastColoredTextBoxNS.FastColoredTextBox();
-      btnArchive = new Button();
+      runTimer = new System.Windows.Forms.Timer(components);
       ((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
       splitContainer1.Panel1.SuspendLayout();
       splitContainer1.Panel2.SuspendLayout();
@@ -108,6 +128,9 @@
       tpBrowse.SuspendLayout();
       tpItems.SuspendLayout();
       ((System.ComponentModel.ISupportInitialize)edRank).BeginInit();
+      tpSchedule.SuspendLayout();
+      tabControl2.SuspendLayout();
+      tpScheduleJob.SuspendLayout();
       tpExport.SuspendLayout();
       ((System.ComponentModel.ISupportInitialize)fclbDescription).BeginInit();
       SuspendLayout();
@@ -125,8 +148,8 @@
       // splitContainer1.Panel2
       // 
       splitContainer1.Panel2.Controls.Add(tabControl1);
-      splitContainer1.Size = new Size(841, 539);
-      splitContainer1.SplitterDistance = 280;
+      splitContainer1.Size = new Size(813, 538);
+      splitContainer1.SplitterDistance = 270;
       splitContainer1.TabIndex = 0;
       // 
       // splitContainer2
@@ -143,8 +166,8 @@
       // splitContainer2.Panel2
       // 
       splitContainer2.Panel2.Controls.Add(tvKb);
-      splitContainer2.Size = new Size(280, 539);
-      splitContainer2.SplitterDistance = 64;
+      splitContainer2.Size = new Size(270, 538);
+      splitContainer2.SplitterDistance = 63;
       splitContainer2.TabIndex = 0;
       // 
       // btnReloadTree
@@ -167,7 +190,7 @@
       tvKb.Location = new Point(0, 0);
       tvKb.Name = "tvKb";
       tvKb.SelectedImageIndex = 0;
-      tvKb.Size = new Size(280, 471);
+      tvKb.Size = new Size(270, 471);
       tvKb.TabIndex = 0;
       tvKb.ItemDrag += tvKb_ItemDrag;
       tvKb.AfterSelect += tvKb_AfterSelect;
@@ -332,13 +355,15 @@
       // 
       tabControl1.Controls.Add(tpBrowse);
       tabControl1.Controls.Add(tpItems);
+      tabControl1.Controls.Add(tpSchedule);
       tabControl1.Controls.Add(tpExport);
       tabControl1.Dock = DockStyle.Fill;
       tabControl1.Location = new Point(0, 0);
       tabControl1.Name = "tabControl1";
       tabControl1.SelectedIndex = 0;
-      tabControl1.Size = new Size(557, 539);
+      tabControl1.Size = new Size(539, 538);
       tabControl1.TabIndex = 0;
+      tabControl1.SelectedIndexChanged += tabControl1_SelectedIndexChanged;
       // 
       // tpBrowse
       // 
@@ -357,7 +382,7 @@
       tpBrowse.Location = new Point(4, 24);
       tpBrowse.Name = "tpBrowse";
       tpBrowse.Padding = new Padding(3);
-      tpBrowse.Size = new Size(549, 511);
+      tpBrowse.Size = new Size(531, 510);
       tpBrowse.TabIndex = 2;
       tpBrowse.Text = "Settings";
       tpBrowse.UseVisualStyleBackColor = true;
@@ -365,7 +390,7 @@
       // lbLaunchCmd
       // 
       lbLaunchCmd.AutoSize = true;
-      lbLaunchCmd.Location = new Point(162, 22);
+      lbLaunchCmd.Location = new Point(149, 22);
       lbLaunchCmd.Name = "lbLaunchCmd";
       lbLaunchCmd.Size = new Size(31, 15);
       lbLaunchCmd.TabIndex = 12;
@@ -376,7 +401,7 @@
       // label6
       // 
       label6.AutoSize = true;
-      label6.Location = new Point(38, 302);
+      label6.Location = new Point(23, 374);
       label6.Name = "label6";
       label6.Size = new Size(52, 15);
       label6.TabIndex = 11;
@@ -385,17 +410,17 @@
       // tbTestOut
       // 
       tbTestOut.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-      tbTestOut.Location = new Point(37, 327);
+      tbTestOut.Location = new Point(19, 392);
       tbTestOut.Multiline = true;
       tbTestOut.Name = "tbTestOut";
-      tbTestOut.Size = new Size(504, 176);
+      tbTestOut.Size = new Size(504, 110);
       tbTestOut.TabIndex = 10;
       // 
       // lbLMStudioModels
       // 
       lbLMStudioModels.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
       lbLMStudioModels.FormattingEnabled = true;
-      lbLMStudioModels.Location = new Point(173, 122);
+      lbLMStudioModels.Location = new Point(149, 122);
       lbLMStudioModels.Name = "lbLMStudioModels";
       lbLMStudioModels.Size = new Size(368, 64);
       lbLMStudioModels.TabIndex = 9;
@@ -405,7 +430,7 @@
       // 
       cbClaudeModel.FormattingEnabled = true;
       cbClaudeModel.Items.AddRange(new object[] { "sonnet", "opus" });
-      cbClaudeModel.Location = new Point(173, 252);
+      cbClaudeModel.Location = new Point(149, 252);
       cbClaudeModel.Name = "cbClaudeModel";
       cbClaudeModel.Size = new Size(368, 23);
       cbClaudeModel.TabIndex = 8;
@@ -463,13 +488,13 @@
       lbCurrentModel.AutoSize = true;
       lbCurrentModel.Location = new Point(23, 56);
       lbCurrentModel.Name = "lbCurrentModel";
-      lbCurrentModel.Size = new Size(133, 15);
+      lbCurrentModel.Size = new Size(108, 15);
       lbCurrentModel.TabIndex = 3;
-      lbCurrentModel.Text = " LMStudioModel to use:";
+      lbCurrentModel.Text = " LLM Model to use:";
       // 
       // edLmStudioModel
       // 
-      edLmStudioModel.Location = new Point(173, 93);
+      edLmStudioModel.Location = new Point(149, 93);
       edLmStudioModel.Name = "edLmStudioModel";
       edLmStudioModel.Size = new Size(368, 23);
       edLmStudioModel.TabIndex = 2;
@@ -477,7 +502,7 @@
       // 
       // btnGetLmStudioModels
       // 
-      btnGetLmStudioModels.Location = new Point(71, 137);
+      btnGetLmStudioModels.Location = new Point(58, 140);
       btnGetLmStudioModels.Name = "btnGetLmStudioModels";
       btnGetLmStudioModels.Size = new Size(85, 23);
       btnGetLmStudioModels.TabIndex = 1;
@@ -511,10 +536,20 @@
       tpItems.Location = new Point(4, 24);
       tpItems.Name = "tpItems";
       tpItems.Padding = new Padding(3);
-      tpItems.Size = new Size(549, 511);
+      tpItems.Size = new Size(531, 510);
       tpItems.TabIndex = 0;
       tpItems.Text = "Items";
       tpItems.UseVisualStyleBackColor = true;
+      // 
+      // btnArchive
+      // 
+      btnArchive.Location = new Point(351, 131);
+      btnArchive.Name = "btnArchive";
+      btnArchive.Size = new Size(75, 23);
+      btnArchive.TabIndex = 23;
+      btnArchive.Text = "Archive";
+      btnArchive.UseVisualStyleBackColor = true;
+      btnArchive.Click += btnArchive_Click;
       // 
       // btnCancelRelation
       // 
@@ -671,7 +706,7 @@
       edItemData.Multiline = true;
       edItemData.Name = "edItemData";
       edItemData.ScrollBars = ScrollBars.Both;
-      edItemData.Size = new Size(465, 163);
+      edItemData.Size = new Size(447, 163);
       edItemData.TabIndex = 3;
       edItemData.TextChanged += edItemName_TextChanged;
       // 
@@ -682,7 +717,7 @@
       edItemDesc.Multiline = true;
       edItemDesc.Name = "edItemDesc";
       edItemDesc.ScrollBars = ScrollBars.Both;
-      edItemDesc.Size = new Size(465, 113);
+      edItemDesc.Size = new Size(447, 113);
       edItemDesc.TabIndex = 2;
       edItemDesc.TextChanged += edItemName_TextChanged;
       // 
@@ -692,7 +727,7 @@
       edItemType.FormattingEnabled = true;
       edItemType.Location = new Point(77, 192);
       edItemType.Name = "edItemType";
-      edItemType.Size = new Size(465, 23);
+      edItemType.Size = new Size(447, 23);
       edItemType.TabIndex = 1;
       edItemType.TextChanged += edItemName_TextChanged;
       // 
@@ -701,9 +736,226 @@
       edItemName.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
       edItemName.Location = new Point(77, 163);
       edItemName.Name = "edItemName";
-      edItemName.Size = new Size(465, 23);
+      edItemName.Size = new Size(447, 23);
       edItemName.TabIndex = 0;
       edItemName.TextChanged += edItemName_TextChanged;
+      // 
+      // tpSchedule
+      // 
+      tpSchedule.Controls.Add(btnDeleteQueueItem);
+      tpSchedule.Controls.Add(edRunLogOut);
+      tpSchedule.Controls.Add(lbRunItemName);
+      tpSchedule.Controls.Add(lbWorkingStatus);
+      tpSchedule.Controls.Add(btnRunNextScheduled);
+      tpSchedule.Controls.Add(btnStartStop);
+      tpSchedule.Controls.Add(btnAddToSchedule);
+      tpSchedule.Controls.Add(lbAgentQueue);
+      tpSchedule.Controls.Add(label5);
+      tpSchedule.Controls.Add(tabControl2);
+      tpSchedule.Location = new Point(4, 24);
+      tpSchedule.Name = "tpSchedule";
+      tpSchedule.Size = new Size(531, 510);
+      tpSchedule.TabIndex = 3;
+      tpSchedule.Text = "Schedule";
+      tpSchedule.UseVisualStyleBackColor = true;
+      // 
+      // btnDeleteQueueItem
+      // 
+      btnDeleteQueueItem.Location = new Point(122, 140);
+      btnDeleteQueueItem.Name = "btnDeleteQueueItem";
+      btnDeleteQueueItem.Size = new Size(61, 23);
+      btnDeleteQueueItem.TabIndex = 9;
+      btnDeleteQueueItem.Text = "Delete";
+      btnDeleteQueueItem.UseVisualStyleBackColor = true;
+      btnDeleteQueueItem.Click += btnDeleteQueueItem_Click;
+      // 
+      // edRunLogOut
+      // 
+      edRunLogOut.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+      edRunLogOut.Location = new Point(219, 169);
+      edRunLogOut.Multiline = true;
+      edRunLogOut.Name = "edRunLogOut";
+      edRunLogOut.Size = new Size(300, 334);
+      edRunLogOut.TabIndex = 8;
+      // 
+      // lbRunItemName
+      // 
+      lbRunItemName.AutoSize = true;
+      lbRunItemName.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
+      lbRunItemName.Location = new Point(204, 116);
+      lbRunItemName.Name = "lbRunItemName";
+      lbRunItemName.Size = new Size(98, 21);
+      lbRunItemName.TabIndex = 7;
+      lbRunItemName.Text = "Running: NA";
+      // 
+      // lbWorkingStatus
+      // 
+      lbWorkingStatus.AutoSize = true;
+      lbWorkingStatus.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
+      lbWorkingStatus.Location = new Point(221, 140);
+      lbWorkingStatus.Name = "lbWorkingStatus";
+      lbWorkingStatus.Size = new Size(112, 21);
+      lbWorkingStatus.TabIndex = 6;
+      lbWorkingStatus.Text = "Status: Waiting";
+      // 
+      // btnRunNextScheduled
+      // 
+      btnRunNextScheduled.Location = new Point(55, 140);
+      btnRunNextScheduled.Name = "btnRunNextScheduled";
+      btnRunNextScheduled.Size = new Size(61, 23);
+      btnRunNextScheduled.TabIndex = 5;
+      btnRunNextScheduled.Text = "Do Next";
+      btnRunNextScheduled.UseVisualStyleBackColor = true;
+      btnRunNextScheduled.Click += btnRunNextScheduled_Click;
+      // 
+      // btnStartStop
+      // 
+      btnStartStop.Location = new Point(6, 140);
+      btnStartStop.Name = "btnStartStop";
+      btnStartStop.Size = new Size(43, 23);
+      btnStartStop.TabIndex = 4;
+      btnStartStop.Text = "Start";
+      btnStartStop.UseVisualStyleBackColor = true;
+      btnStartStop.Click += btnStartStop_Click;
+      // 
+      // btnAddToSchedule
+      // 
+      btnAddToSchedule.Location = new Point(13, 44);
+      btnAddToSchedule.Name = "btnAddToSchedule";
+      btnAddToSchedule.Size = new Size(75, 23);
+      btnAddToSchedule.TabIndex = 3;
+      btnAddToSchedule.Text = "Add";
+      btnAddToSchedule.UseVisualStyleBackColor = true;
+      btnAddToSchedule.Click += btnAddToSchedule_Click;
+      // 
+      // lbAgentQueue
+      // 
+      lbAgentQueue.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left;
+      lbAgentQueue.FormattingEnabled = true;
+      lbAgentQueue.Location = new Point(6, 169);
+      lbAgentQueue.Name = "lbAgentQueue";
+      lbAgentQueue.Size = new Size(209, 334);
+      lbAgentQueue.TabIndex = 2;
+      // 
+      // label5
+      // 
+      label5.AutoSize = true;
+      label5.Font = new Font("Segoe UI", 12F);
+      label5.Location = new Point(15, 14);
+      label5.Name = "label5";
+      label5.Size = new Size(73, 21);
+      label5.TabIndex = 1;
+      label5.Text = "Schedule";
+      // 
+      // tabControl2
+      // 
+      tabControl2.Alignment = TabAlignment.Bottom;
+      tabControl2.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+      tabControl2.Controls.Add(tpScheduleJob);
+      tabControl2.Location = new Point(94, 3);
+      tabControl2.Name = "tabControl2";
+      tabControl2.SelectedIndex = 0;
+      tabControl2.Size = new Size(431, 115);
+      tabControl2.TabIndex = 0;
+      // 
+      // tpScheduleJob
+      // 
+      tpScheduleJob.Controls.Add(rbDeliverable);
+      tpScheduleJob.Controls.Add(rbPerformance);
+      tpScheduleJob.Controls.Add(rbCallSheet);
+      tpScheduleJob.Controls.Add(rbBeat);
+      tpScheduleJob.Controls.Add(rbScene);
+      tpScheduleJob.Controls.Add(rbStory);
+      tpScheduleJob.Controls.Add(lbScheduleItem);
+      tpScheduleJob.Location = new Point(4, 4);
+      tpScheduleJob.Name = "tpScheduleJob";
+      tpScheduleJob.Padding = new Padding(3);
+      tpScheduleJob.Size = new Size(423, 87);
+      tpScheduleJob.TabIndex = 0;
+      tpScheduleJob.Text = "Generation";
+      tpScheduleJob.UseVisualStyleBackColor = true;
+      // 
+      // rbDeliverable
+      // 
+      rbDeliverable.AutoSize = true;
+      rbDeliverable.Location = new Point(223, 62);
+      rbDeliverable.Name = "rbDeliverable";
+      rbDeliverable.Size = new Size(83, 19);
+      rbDeliverable.TabIndex = 6;
+      rbDeliverable.TabStop = true;
+      rbDeliverable.Tag = "shedule";
+      rbDeliverable.Text = "Deliverable";
+      rbDeliverable.UseVisualStyleBackColor = true;
+      // 
+      // rbPerformance
+      // 
+      rbPerformance.AutoSize = true;
+      rbPerformance.Location = new Point(174, 41);
+      rbPerformance.Name = "rbPerformance";
+      rbPerformance.Size = new Size(93, 19);
+      rbPerformance.TabIndex = 5;
+      rbPerformance.TabStop = true;
+      rbPerformance.Tag = "shedule";
+      rbPerformance.Text = "Performance";
+      rbPerformance.UseVisualStyleBackColor = true;
+      // 
+      // rbCallSheet
+      // 
+      rbCallSheet.AutoSize = true;
+      rbCallSheet.Location = new Point(123, 62);
+      rbCallSheet.Name = "rbCallSheet";
+      rbCallSheet.Size = new Size(74, 19);
+      rbCallSheet.TabIndex = 4;
+      rbCallSheet.TabStop = true;
+      rbCallSheet.Tag = "shedule";
+      rbCallSheet.Text = "CallSheet";
+      rbCallSheet.UseVisualStyleBackColor = true;
+      // 
+      // rbBeat
+      // 
+      rbBeat.AutoSize = true;
+      rbBeat.Location = new Point(86, 41);
+      rbBeat.Name = "rbBeat";
+      rbBeat.Size = new Size(48, 19);
+      rbBeat.TabIndex = 3;
+      rbBeat.TabStop = true;
+      rbBeat.Tag = "shedule";
+      rbBeat.Text = "Beat";
+      rbBeat.UseVisualStyleBackColor = true;
+      // 
+      // rbScene
+      // 
+      rbScene.AutoSize = true;
+      rbScene.Location = new Point(42, 62);
+      rbScene.Name = "rbScene";
+      rbScene.Size = new Size(56, 19);
+      rbScene.TabIndex = 2;
+      rbScene.TabStop = true;
+      rbScene.Tag = "shedule";
+      rbScene.Text = "Scene";
+      rbScene.UseVisualStyleBackColor = true;
+      // 
+      // rbStory
+      // 
+      rbStory.AutoSize = true;
+      rbStory.Location = new Point(8, 41);
+      rbStory.Name = "rbStory";
+      rbStory.Size = new Size(52, 19);
+      rbStory.TabIndex = 1;
+      rbStory.TabStop = true;
+      rbStory.Tag = "shedule";
+      rbStory.Text = "Story";
+      rbStory.UseVisualStyleBackColor = true;
+      // 
+      // lbScheduleItem
+      // 
+      lbScheduleItem.AutoSize = true;
+      lbScheduleItem.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
+      lbScheduleItem.Location = new Point(8, 7);
+      lbScheduleItem.Name = "lbScheduleItem";
+      lbScheduleItem.Size = new Size(126, 21);
+      lbScheduleItem.TabIndex = 0;
+      lbScheduleItem.Text = "Item to Schedule";
       // 
       // tpExport
       // 
@@ -718,7 +970,7 @@
       tpExport.Location = new Point(4, 24);
       tpExport.Name = "tpExport";
       tpExport.Padding = new Padding(3);
-      tpExport.Size = new Size(549, 511);
+      tpExport.Size = new Size(531, 510);
       tpExport.TabIndex = 1;
       tpExport.Text = "Export";
       tpExport.UseVisualStyleBackColor = true;
@@ -795,7 +1047,6 @@
       // 
       // fclbDescription
       // 
-      fclbDescription.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
       fclbDescription.AutoCompleteBracketsList = new char[]
   {
     '(',
@@ -817,44 +1068,40 @@
       fclbDescription.CharWidth = 8;
       fclbDescription.DefaultMarkerSize = 8;
       fclbDescription.DisabledColor = Color.FromArgb(100, 180, 180, 180);
+      fclbDescription.Dock = DockStyle.Bottom;
       fclbDescription.FindForm = null;
       fclbDescription.Font = new Font("Courier New", 9.75F);
       fclbDescription.GoToForm = null;
       fclbDescription.Hotkeys = resources.GetString("fclbDescription.Hotkeys");
       fclbDescription.IsReplaceMode = false;
-      fclbDescription.Location = new Point(4, 90);
+      fclbDescription.Location = new Point(3, 89);
       fclbDescription.Name = "fclbDescription";
       fclbDescription.Paddings = new Padding(0);
       fclbDescription.ReplaceForm = null;
       fclbDescription.SelectionColor = Color.FromArgb(60, 0, 0, 255);
       fclbDescription.ServiceColors = (FastColoredTextBoxNS.ServiceColors)resources.GetObject("fclbDescription.ServiceColors");
-      fclbDescription.Size = new Size(541, 418);
+      fclbDescription.Size = new Size(525, 418);
       fclbDescription.TabIndex = 0;
       fclbDescription.WordWrap = true;
       fclbDescription.Zoom = 100;
       fclbDescription.TextChanged += fclbDescription_TextChanged;
       // 
-      // btnArchive
+      // runTimer
       // 
-      btnArchive.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-      btnArchive.Location = new Point(466, 133);
-      btnArchive.Name = "btnArchive";
-      btnArchive.Size = new Size(75, 23);
-      btnArchive.TabIndex = 23;
-      btnArchive.Text = "Archive";
-      btnArchive.UseVisualStyleBackColor = true;
-      btnArchive.Click += btnArchive_Click;
+      runTimer.Interval = 860;
+      runTimer.Tick += runTimer_Tick;
       // 
       // Form1
       // 
       AutoScaleDimensions = new SizeF(7F, 15F);
       AutoScaleMode = AutoScaleMode.Font;
-      ClientSize = new Size(841, 539);
+      ClientSize = new Size(813, 538);
       Controls.Add(splitContainer1);
       Icon = (Icon)resources.GetObject("$this.Icon");
       Name = "Form1";
       Text = "Storytime";
       Shown += Form1_Shown;
+      Resize += Form1_Resize;
       splitContainer1.Panel1.ResumeLayout(false);
       splitContainer1.Panel2.ResumeLayout(false);
       ((System.ComponentModel.ISupportInitialize)splitContainer1).EndInit();
@@ -870,6 +1117,11 @@
       tpItems.ResumeLayout(false);
       tpItems.PerformLayout();
       ((System.ComponentModel.ISupportInitialize)edRank).EndInit();
+      tpSchedule.ResumeLayout(false);
+      tpSchedule.PerformLayout();
+      tabControl2.ResumeLayout(false);
+      tpScheduleJob.ResumeLayout(false);
+      tpScheduleJob.PerformLayout();
       tpExport.ResumeLayout(false);
       tpExport.PerformLayout();
       ((System.ComponentModel.ISupportInitialize)fclbDescription).EndInit();
@@ -948,5 +1200,25 @@
     private Button btnUpdateExport;
     private LinkLabel lbLaunchCmd;
     private Button btnArchive;
+    private TabPage tpSchedule;
+    private TabControl tabControl2;
+    private TabPage tpScheduleJob;
+    private Label label5;
+    private RadioButton rbPerformance;
+    private RadioButton rbCallSheet;
+    private RadioButton rbBeat;
+    private RadioButton rbScene;
+    private RadioButton rbStory;
+    private Label lbScheduleItem;
+    private ListBox lbAgentQueue;
+    private Button btnRunNextScheduled;
+    private Button btnStartStop;
+    private Button btnAddToSchedule;
+    private TextBox edRunLogOut;
+    private Label lbRunItemName;
+    private Label lbWorkingStatus;
+    private RadioButton rbDeliverable;
+    private System.Windows.Forms.Timer runTimer;
+    private Button btnDeleteQueueItem;
   }
 }

@@ -94,6 +94,7 @@ namespace Storytime.Core.Agents {
         UserPrompt = this.UserPrompt,
         Established = DateTime.UtcNow
       };
+      string theRequestWas = "";
       try { 
 
         List<Integration> listIntegrations = ToolsToUse
@@ -109,7 +110,8 @@ namespace Storytime.Core.Agents {
         };
 
         LastRequest = request;
-    
+        theRequestWas = JsonSerializer.Serialize(request);
+
         var response = await _lmStudioClient.ChatAsync(request, cancellationToken);
         response.GetText();
         
@@ -123,7 +125,7 @@ namespace Storytime.Core.Agents {
       } catch (Exception ex) {
         Status = AgentStatus.Error;
         log.Success = false;
-        log.ErrorMessage = ex.Message;
+        log.ErrorMessage = ex.Message +" "+theRequestWas;        
         throw;
       } finally {
         await _context.AgentLogs.AddAsync(log);

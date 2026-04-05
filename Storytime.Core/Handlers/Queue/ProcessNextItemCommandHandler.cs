@@ -4,10 +4,11 @@ using Storytime.Core.Entities;
 using Storytime.Core.Handlers.Items;
 using Storytime.Core.Handlers.LmStudio;
 using Storytime.Core.Agents;
+using Storytime.Core.Handlers.Queue;
 
 namespace Storytime.Core.Handlers.Queue {
 
-  public record ProcessNextItemCommand() : IRequest<bool>;
+  public record ProcessNextItemCommand(int Id) : IRequest<bool>;
 
   public class ProcessNextItemCommandHandler : IRequestHandler<ProcessNextItemCommand, bool> {
     private readonly IMediator _mediator;
@@ -16,7 +17,7 @@ namespace Storytime.Core.Handlers.Queue {
     }
 
     public async Task<bool> Handle(ProcessNextItemCommand request, CancellationToken cancellationToken) {
-      var nextItem = await _mediator.Send(new GetNextAgentQueueItemQuery(), cancellationToken);
+      var nextItem = await _mediator.Send(new GetAgentQueueItemById(request.Id), cancellationToken);
       if (nextItem == null)
         return false;
 

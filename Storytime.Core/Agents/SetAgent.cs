@@ -17,6 +17,7 @@ namespace Storytime.Core.Agents {
 
     public SetAgent(ILocalBaseAgentFactory baseAgentFactory, IMediator mediator) {
       _baseAgent = baseAgentFactory.Create();
+      if (_baseAgent.ToolsToUse.Count > 0) _baseAgent.ToolsToUse.Clear();
       _baseAgent.ToolsToUse.Add(Cx.LMStudioStorytimeMcpToolName);
       _baseAgent.Name = $"The Set at {Cx.AppName}";
       _mediator = mediator;
