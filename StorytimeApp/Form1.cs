@@ -32,19 +32,28 @@ namespace StorytimeApp {
   public partial class Form1 : Form {
     private readonly IServiceScopeFactory _scopeFactory;
     private ILogger<Form1> _logger;
-    private readonly IAppDataModuleService _appDataModuleService;
+    private readonly IAppDataModuleService _appDataModuleService;   
     private Dictionary<int, ItemTypeDto> _itemTypeCache = new Dictionary<int, ItemTypeDto>();
     private Dictionary<int, ItemDto> _itemCache = new Dictionary<int, ItemDto>();
 
     public Form1(IServiceScopeFactory scopeFactory) {
       _scopeFactory = scopeFactory;
       using var scope = _scopeFactory.CreateScope();
-      _logger = scope.ServiceProvider.GetRequiredService<ILogger<Form1>>();
+      _logger = scope.ServiceProvider.GetRequiredService<ILogger<Form1>>();      
       _appDataModuleService = scope.ServiceProvider.GetRequiredService<IAppDataModuleService>();
       InitializeComponent();
       _logger.LogInformation("Form1 initialized.");
-      lbClaudeLaunch.Text = Cx.ClaudeExecutablePath;
-      lbLinkExport.Text = Cx.ExportPath;
+      lbClaudeLaunch.Text = _appDataModuleService.ClaudeLaunchPath;
+      lbLinkExport.Text = _appDataModuleService.StorytimeExportPath;
+      edLMStudioUrl.Text = _appDataModuleService.LMStudioUrl;
+      edLMStudioApiKey.Text = _appDataModuleService.LMStudioApiKey;
+      edLmStudioModel.Text = _appDataModuleService.CurrentLMStudioModel;
+      if (_appDataModuleService.CurrentMode == AgentRunnerMode.LmStudio) {
+        rbLMStudio.Checked = true;
+      } else {
+        rbClaudeCode.Checked = true;
+      }
+      cbClaudeModel.SelectedIndex = cbClaudeModel.Items.IndexOf(_appDataModuleService.CurrentClaudeModel);
     }
 
     #region TreeView Loading and Setup
@@ -1264,10 +1273,21 @@ namespace StorytimeApp {
           lbWorkingStatus.Text = "Status: Pipeline Running";
           btnStartStop.Text = "Stop";
           btnRunNextScheduled.Enabled = false;
+          _isStopping = false;
         } else {
-          lbWorkingStatus.Text = "Status: Pipeline Idle";
-          btnStartStop.Text = "Start";
-          btnRunNextScheduled.Enabled = true;
+          if (!_isStopping) {
+            lbWorkingStatus.Text = "Status: Pipeline Idle";
+            btnStartStop.Text = "Waiting";
+            btnStartStop.Enabled = false;
+            btnRunNextScheduled.Enabled = false;
+            _isStopping = true;
+          } else { 
+            lbWorkingStatus.Text = "Status: Pipeline Idle";
+            btnStartStop.Text = "Start";
+            btnRunNextScheduled.Enabled = true;
+            btnStartStop.Enabled = true;
+            _isStopping = false;
+          }
         }
       }
     }
@@ -1295,6 +1315,9 @@ namespace StorytimeApp {
         if (btnStartStop.Text == "Stop") {
           runTimer.Enabled = true;
           btnRunNextScheduled.Enabled = false;
+        }
+        if (_isStopping) {           
+          EngineRunning = false;
         }
       }
     }
@@ -1359,6 +1382,7 @@ namespace StorytimeApp {
         var item = await _mediator.Send(new GetItemByIdQuery(itemId, true));
         if (item == null) {
           DoErrorStop("Failed to find item for next queue item.");          
+          return;
         }
         DoPublishProgress("Starting (" + Cx.AsString((StItemType)item.ItemTypeId) + "):" + nextQueueItemString + " destination being " + Cx.AsString(TargetDepth));
 
@@ -1379,6 +1403,7 @@ namespace StorytimeApp {
           var aStoryId = await _mediator.Send(new GetAncestorIdByTypeQuery(workingId, StItemType.Story));
           if (aStoryId == null) {
             DoErrorStop("Failed to find ancestor story for item.");
+            return;
           }
           storyId = aStoryId.Value;
         }
@@ -1390,6 +1415,7 @@ namespace StorytimeApp {
           item = await _mediator.Send(new GetItemByIdQuery(itemId, true));
           if (item == null) {
             DoErrorStop("Failed to find story for project.");
+            return;
           }
 
           var nextItem = item.Relations
@@ -1402,9 +1428,14 @@ namespace StorytimeApp {
           }
           workingId = nextItem[0].RelatedItemId!.Value;
           item = await _mediator.Send(new GetItemByIdQuery(workingId, true));
+          if (item == null) {
+            DoErrorStop("Failed to find story for project after create.");
+            return;
+          }
           DoPublishProgress("Added (" + Cx.AsString((StItemType)item.ItemTypeId) + "):" + nextQueueItemString + " destination being " + Cx.AsString(TargetDepth));
           if (item == null) {
             DoErrorStop("Failed to find item for next queue item.");
+            return;
           }
           workingTypeId = item.ItemTypeId;
         }
@@ -1429,6 +1460,10 @@ namespace StorytimeApp {
           }
           workingId = nextItem[0].RelatedItemId!.Value;  // sceneId
           item = await _mediator.Send(new GetItemByIdQuery(workingId, true));
+          if (item == null) {
+            DoErrorStop("Failed to find scene after add Story");
+            return;
+          }
           DoPublishProgress("Added (" + Cx.AsString((StItemType)item.ItemTypeId) + "):" + nextQueueItemString + " destination being " + Cx.AsString(TargetDepth));
           if (item == null) {
             DoErrorStop("Failed to find scene after add Story");

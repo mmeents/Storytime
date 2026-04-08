@@ -18,7 +18,13 @@ namespace Storytime.Core.Service {
   public interface IAppDataModuleService {
     AgentRunnerMode CurrentMode { get; set; }
     string CurrentLMStudioModel { get; set; }
+    string LMStudioUrl { get; set;}
+    string LMStudioApiKey { get; set; }
     string CurrentClaudeModel { get; set; }
+    string ClaudeLaunchPath { get; set; }
+    string StorytimeExportPath { get; set; }
+    string StorytimeLogsPath { get; set; }
+
     Task<List<ItemDto>> GetAllProjectItems();
     Task<ItemDto?> GetItemById(int? id);
     Task<List<ItemTypeDto>> GetAllItemTypes();
@@ -74,6 +80,24 @@ namespace Storytime.Core.Service {
       }
     }
 
+    public string LMStudioUrl { 
+      get {
+        return _factorySettingsService.LMStudioUrl;            
+      }
+      set {
+        _factorySettingsService.LMStudioUrl = value;
+      }
+    } 
+
+    public string LMStudioApiKey { 
+      get {
+        return _factorySettingsService.LMStudioApiKey;            
+      }
+      set {
+        _factorySettingsService.LMStudioApiKey = value;
+      }
+    }
+
     public string CurrentClaudeModel { 
       get {
         return _factorySettingsService.ClaudeModel;            
@@ -81,6 +105,38 @@ namespace Storytime.Core.Service {
       set {
         _factorySettingsService.ClaudeModel = value;
       }
+    }
+
+    public string ClaudeLaunchPath { 
+      get {
+        return _factorySettingsService.ClaudeLaunchPath;            
+      }
+      set {
+        _factorySettingsService.ClaudeLaunchPath = value;
+      }
+    }
+
+    public string StorytimeExportPath { 
+      get {
+        return _factorySettingsService.StorytimeExportPath;            
+      }
+      set {
+        _factorySettingsService.StorytimeExportPath = value;
+      }
+    }
+
+    public string StorytimeLogsPath { 
+      get {
+        return _factorySettingsService.StorytimeLogsPath;            
+      }
+      set {
+        _factorySettingsService.StorytimeLogsPath = value;
+      }
+    }
+
+    public bool SaveSettings() {
+      _factorySettingsService.Save();
+      return true;
     }
 
     public async Task<List<ItemDto>> GetAllProjectItems() {

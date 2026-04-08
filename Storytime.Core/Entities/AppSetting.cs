@@ -12,7 +12,7 @@ namespace Storytime.Core.Entities {
     public DateTime CreatedAt { get; private set; }
     public DateTime ModifiedAt { get; set; }
 
-    private AppSetting() { }
+    public AppSetting() { }
 
     public AppSetting(string key, string? value, int? valueInt, string? description = null) {
       Key = key;

@@ -18,6 +18,7 @@ namespace Storytime.Core {
         //cfg.RegisterServicesFromAssembly(typeof(KbDbContext).Assembly);           // KB.Core
       });
       services.AddSingleton<IFactorySettingsService, FactorySettingsService>();
+      services.AddScoped<ISettingsService, SettingsService>();
       services.AddScoped<IAppDataModuleService, AppDataModuleService>();    
       services.AddScoped<ILmStudioClient, LmStudioClient>();
       services.AddScoped<ILocalBaseAgentFactory, LocalBaseAgentFactory>();

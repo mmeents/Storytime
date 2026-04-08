@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Storytime.Core.Models;
 using Storytime.Core.Constants;
 using Microsoft.Extensions.Logging;
+using Storytime.Core.Service;
 
 namespace Storytime.Core.Clients {
   public interface ILmStudioClient {
@@ -20,6 +21,7 @@ namespace Storytime.Core.Clients {
 
   public class LmStudioClient : ILmStudioClient, IDisposable {
     private readonly ILogger<ILmStudioClient> _logger;
+    private readonly IFactorySettingsService _factorySettingsService;
 
     private static readonly JsonSerializerOptions JsonOptions = new() {
       DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
@@ -49,9 +51,10 @@ namespace Storytime.Core.Clients {
       }
     }
         
-    public LmStudioClient(ILogger<ILmStudioClient> logger) {
+    public LmStudioClient(ILogger<ILmStudioClient> logger, IFactorySettingsService factorySettingsService) {
       _logger = logger;
-      _http = new HttpClient { BaseAddress = new Uri(BaseUrl.TrimEnd('/') + "/"), Timeout = Timeout.InfiniteTimeSpan };      
+      _factorySettingsService = factorySettingsService;
+      _http = new HttpClient { BaseAddress = new Uri(_factorySettingsService.LMStudioUrl.TrimEnd('/') + "/"), Timeout = Timeout.InfiniteTimeSpan };      
       ApiToken = Cx.LMStudioApiKey;
     }    
 

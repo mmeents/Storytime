@@ -52,6 +52,11 @@
       treeList = new ImageList(components);
       tabControl1 = new TabControl();
       tpBrowse = new TabPage();
+      label11 = new Label();
+      edLMStudioApiKey = new TextBox();
+      label10 = new Label();
+      label9 = new Label();
+      edLMStudioUrl = new TextBox();
       lbLaunchCmd = new LinkLabel();
       label6 = new Label();
       tbTestOut = new TextBox();
@@ -368,6 +373,11 @@
       // 
       // tpBrowse
       // 
+      tpBrowse.Controls.Add(label11);
+      tpBrowse.Controls.Add(edLMStudioApiKey);
+      tpBrowse.Controls.Add(label10);
+      tpBrowse.Controls.Add(label9);
+      tpBrowse.Controls.Add(edLMStudioUrl);
       tpBrowse.Controls.Add(lbLaunchCmd);
       tpBrowse.Controls.Add(label6);
       tpBrowse.Controls.Add(tbTestOut);
@@ -388,15 +398,58 @@
       tpBrowse.Text = "Settings";
       tpBrowse.UseVisualStyleBackColor = true;
       // 
+      // label11
+      // 
+      label11.AutoSize = true;
+      label11.Location = new Point(50, 101);
+      label11.Name = "label11";
+      label11.Size = new Size(83, 15);
+      label11.TabIndex = 17;
+      label11.Text = "LM St Api Key:";
+      // 
+      // edLMStudioApiKey
+      // 
+      edLMStudioApiKey.Location = new Point(145, 98);
+      edLMStudioApiKey.Name = "edLMStudioApiKey";
+      edLMStudioApiKey.Size = new Size(368, 23);
+      edLMStudioApiKey.TabIndex = 16;
+      edLMStudioApiKey.Text = "somekey";
+      // 
+      // label10
+      // 
+      label10.AutoSize = true;
+      label10.Location = new Point(33, 129);
+      label10.Name = "label10";
+      label10.Size = new Size(101, 15);
+      label10.TabIndex = 15;
+      label10.Text = "LM Studio Model:";
+      // 
+      // label9
+      // 
+      label9.AutoSize = true;
+      label9.Location = new Point(52, 72);
+      label9.Name = "label9";
+      label9.Size = new Size(82, 15);
+      label9.TabIndex = 14;
+      label9.Text = "LM Studio Url:";
+      // 
+      // edLMStudioUrl
+      // 
+      edLMStudioUrl.Location = new Point(145, 69);
+      edLMStudioUrl.Name = "edLMStudioUrl";
+      edLMStudioUrl.Size = new Size(368, 23);
+      edLMStudioUrl.TabIndex = 13;
+      edLMStudioUrl.Text = "http";
+      // 
       // lbLaunchCmd
       // 
       lbLaunchCmd.AutoSize = true;
-      lbLaunchCmd.Location = new Point(149, 22);
+      lbLaunchCmd.Location = new Point(275, 255);
       lbLaunchCmd.Name = "lbLaunchCmd";
-      lbLaunchCmd.Size = new Size(31, 15);
+      lbLaunchCmd.Size = new Size(39, 15);
       lbLaunchCmd.TabIndex = 12;
       lbLaunchCmd.TabStop = true;
-      lbLaunchCmd.Text = "cmd";
+      lbLaunchCmd.Text = "[cmd]";
       lbLaunchCmd.LinkClicked += lbLaunchCmd_LinkClicked;
       // 
       // label6
@@ -421,7 +474,7 @@
       // 
       lbLMStudioModels.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
       lbLMStudioModels.FormattingEnabled = true;
-      lbLMStudioModels.Location = new Point(149, 122);
+      lbLMStudioModels.Location = new Point(145, 155);
       lbLMStudioModels.Name = "lbLMStudioModels";
       lbLMStudioModels.Size = new Size(368, 64);
       lbLMStudioModels.TabIndex = 9;
@@ -431,7 +484,7 @@
       // 
       cbClaudeModel.FormattingEnabled = true;
       cbClaudeModel.Items.AddRange(new object[] { "sonnet", "opus" });
-      cbClaudeModel.Location = new Point(149, 252);
+      cbClaudeModel.Location = new Point(149, 285);
       cbClaudeModel.Name = "cbClaudeModel";
       cbClaudeModel.Size = new Size(368, 23);
       cbClaudeModel.TabIndex = 8;
@@ -454,7 +507,7 @@
       // 
       rbLMStudio.AutoSize = true;
       rbLMStudio.Checked = true;
-      rbLMStudio.Location = new Point(37, 94);
+      rbLMStudio.Location = new Point(33, 42);
       rbLMStudio.Name = "rbLMStudio";
       rbLMStudio.Size = new Size(79, 19);
       rbLMStudio.TabIndex = 6;
@@ -467,7 +520,7 @@
       // label8
       // 
       label8.AutoSize = true;
-      label8.Location = new Point(23, 22);
+      label8.Location = new Point(149, 255);
       label8.Name = "label8";
       label8.Size = new Size(120, 15);
       label8.TabIndex = 5;
@@ -476,7 +529,7 @@
       // lbClaudeLaunch
       // 
       lbClaudeLaunch.AutoSize = true;
-      lbClaudeLaunch.Location = new Point(228, 22);
+      lbClaudeLaunch.Location = new Point(320, 255);
       lbClaudeLaunch.Name = "lbClaudeLaunch";
       lbClaudeLaunch.Size = new Size(93, 15);
       lbClaudeLaunch.TabIndex = 4;
@@ -487,7 +540,7 @@
       // lbCurrentModel
       // 
       lbCurrentModel.AutoSize = true;
-      lbCurrentModel.Location = new Point(23, 56);
+      lbCurrentModel.Location = new Point(19, 14);
       lbCurrentModel.Name = "lbCurrentModel";
       lbCurrentModel.Size = new Size(108, 15);
       lbCurrentModel.TabIndex = 3;
@@ -495,7 +548,7 @@
       // 
       // edLmStudioModel
       // 
-      edLmStudioModel.Location = new Point(149, 93);
+      edLmStudioModel.Location = new Point(145, 126);
       edLmStudioModel.Name = "edLmStudioModel";
       edLmStudioModel.Size = new Size(368, 23);
       edLmStudioModel.TabIndex = 2;
@@ -503,7 +556,7 @@
       // 
       // btnGetLmStudioModels
       // 
-      btnGetLmStudioModels.Location = new Point(58, 140);
+      btnGetLmStudioModels.Location = new Point(53, 172);
       btnGetLmStudioModels.Name = "btnGetLmStudioModels";
       btnGetLmStudioModels.Size = new Size(85, 23);
       btnGetLmStudioModels.TabIndex = 1;
@@ -783,7 +836,7 @@
       // 
       lbRunItemName.AutoSize = true;
       lbRunItemName.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
-      lbRunItemName.Location = new Point(204, 116);
+      lbRunItemName.Location = new Point(174, 96);
       lbRunItemName.Name = "lbRunItemName";
       lbRunItemName.Size = new Size(98, 21);
       lbRunItemName.TabIndex = 7;
@@ -842,7 +895,7 @@
       // 
       label5.AutoSize = true;
       label5.Font = new Font("Segoe UI", 12F);
-      label5.Location = new Point(15, 14);
+      label5.Location = new Point(9, 14);
       label5.Name = "label5";
       label5.Size = new Size(73, 21);
       label5.TabIndex = 1;
@@ -856,7 +909,7 @@
       tabControl2.Location = new Point(94, 3);
       tabControl2.Name = "tabControl2";
       tabControl2.SelectedIndex = 0;
-      tabControl2.Size = new Size(431, 115);
+      tabControl2.Size = new Size(431, 110);
       tabControl2.TabIndex = 0;
       // 
       // tpScheduleJob
@@ -871,7 +924,7 @@
       tpScheduleJob.Location = new Point(4, 4);
       tpScheduleJob.Name = "tpScheduleJob";
       tpScheduleJob.Padding = new Padding(3);
-      tpScheduleJob.Size = new Size(423, 87);
+      tpScheduleJob.Size = new Size(423, 82);
       tpScheduleJob.TabIndex = 0;
       tpScheduleJob.Text = "Generation";
       tpScheduleJob.UseVisualStyleBackColor = true;
@@ -879,7 +932,7 @@
       // rbDeliverable
       // 
       rbDeliverable.AutoSize = true;
-      rbDeliverable.Location = new Point(223, 62);
+      rbDeliverable.Location = new Point(223, 59);
       rbDeliverable.Name = "rbDeliverable";
       rbDeliverable.Size = new Size(83, 19);
       rbDeliverable.TabIndex = 6;
@@ -891,7 +944,7 @@
       // rbPerformance
       // 
       rbPerformance.AutoSize = true;
-      rbPerformance.Location = new Point(174, 41);
+      rbPerformance.Location = new Point(174, 38);
       rbPerformance.Name = "rbPerformance";
       rbPerformance.Size = new Size(93, 19);
       rbPerformance.TabIndex = 5;
@@ -903,7 +956,7 @@
       // rbCallSheet
       // 
       rbCallSheet.AutoSize = true;
-      rbCallSheet.Location = new Point(123, 62);
+      rbCallSheet.Location = new Point(123, 59);
       rbCallSheet.Name = "rbCallSheet";
       rbCallSheet.Size = new Size(74, 19);
       rbCallSheet.TabIndex = 4;
@@ -915,7 +968,7 @@
       // rbBeat
       // 
       rbBeat.AutoSize = true;
-      rbBeat.Location = new Point(86, 41);
+      rbBeat.Location = new Point(86, 38);
       rbBeat.Name = "rbBeat";
       rbBeat.Size = new Size(48, 19);
       rbBeat.TabIndex = 3;
@@ -927,7 +980,7 @@
       // rbScene
       // 
       rbScene.AutoSize = true;
-      rbScene.Location = new Point(42, 62);
+      rbScene.Location = new Point(42, 59);
       rbScene.Name = "rbScene";
       rbScene.Size = new Size(56, 19);
       rbScene.TabIndex = 2;
@@ -939,7 +992,7 @@
       // rbStory
       // 
       rbStory.AutoSize = true;
-      rbStory.Location = new Point(8, 41);
+      rbStory.Location = new Point(8, 38);
       rbStory.Name = "rbStory";
       rbStory.Size = new Size(52, 19);
       rbStory.TabIndex = 1;
@@ -1220,5 +1273,10 @@
     private RadioButton rbDeliverable;
     private System.Windows.Forms.Timer runTimer;
     private Button btnDeleteQueueItem;
+    private Label label9;
+    private TextBox edLMStudioUrl;
+    private Label label10;
+    private Label label11;
+    private TextBox edLMStudioApiKey;
   }
 }

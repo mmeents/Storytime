@@ -2,6 +2,8 @@
 using KB.Core.Entities;
 using KB.Core.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Storytime.Core.Entities;
 using Storytime.Core.Models;
 using System;
 using System.Collections.Generic;
@@ -81,6 +83,31 @@ namespace Storytime.Core.Constants {
           .MaxAsync(ir => (int?)ir.Rank, cancellationToken);
 
       return (maxRank ?? 0) + 1;
+    }
+
+
+    public static AppSetting? GetAppSetting(this StorytimeDbContext context, string key) {
+      var setting = context.AppSettings.AsNoTracking().Where(s => s.Key == key).FirstOrDefault();
+      return setting;
+
+    }
+
+    public static AppSetting? SetAppSetting(this StorytimeDbContext context, AppSetting? value) {
+      if (value == null ) {
+        return null;
+      }
+      var setting = context.AppSettings.Where(s => s.Key == value.Key).FirstOrDefault();      
+      if (setting == null) {
+        setting = new AppSetting { Key = value.Key, Value = value.Value, ValueInt = value.ValueInt };
+        context.AppSettings.Add(setting);
+      } else {
+        setting.Value = value.Value;
+        setting.ValueInt = value.ValueInt;
+        context.AppSettings.Update(setting);
+      }
+      context.SaveChanges();
+      return setting;
+
     }
   }
 }

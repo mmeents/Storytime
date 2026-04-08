@@ -5,7 +5,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+using Storytime.Core.Constants;
+
 
 namespace Storytime.Core.Service {
 
@@ -15,32 +16,23 @@ namespace Storytime.Core.Service {
     public AppSettingService(StorytimeDbContext context) {
       _context = context;
     }
-
+    private readonly Dictionary<string, AppSetting> _cache = new Dictionary<string, AppSetting>();
     public AppSetting? this[string key] {
       get {
-        var setting = _context.AppSettings.FirstOrDefault(s => s.Key == key);
+        if (_cache.TryGetValue(key, out var cachedSetting)) {
+          return cachedSetting;
+        }
+        var setting = _context.GetAppSetting(key);
+        if (setting != null) {
+          _cache[setting.Key] = setting;
+        }
         return setting;
       }
       set {
-        var existingSetting = _context.AppSettings.FirstOrDefault(s => s.Key == key);
-        if (existingSetting != null) {
-          if (value == null) {
-            _context.AppSettings.Remove(existingSetting);
-            _context.SaveChanges();
-            return;
-          }
-          existingSetting.UpdateValue(value.Value, value.ValueInt);
-          _context.AppSettings.Update(existingSetting);
-          _context.SaveChanges();
-        } else {
-          if (value == null) {
-            return;
-          }
-          var newSetting = new AppSetting(key, value.Value, value.ValueInt);
-          _context.AppSettings.Add(newSetting);
-          _context.SaveChanges(); 
-        }
-
+        var existingSetting = _context.SetAppSetting(value);        
+        if (existingSetting != null && value != null && value.Key != null) {
+          _cache[value.Key] = existingSetting;
+        } 
       }
     }
 
