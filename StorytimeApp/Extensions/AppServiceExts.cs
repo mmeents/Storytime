@@ -8,7 +8,7 @@ using Storytime.Core;
 using Storytime.Core.Constants;
 
 
-namespace StorytimeAr.Extensions {
+namespace StorytimeApp.Extensions {
   public static class AppServiceExts {
     public static IHost BuildHost() {
       ConfigureSerilog();

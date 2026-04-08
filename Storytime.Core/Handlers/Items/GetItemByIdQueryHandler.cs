@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using KB.Core.Models;
 using Microsoft.EntityFrameworkCore;
+using Storytime.Core.Constants;
 
 namespace Storytime.Core.Handlers.Items {
   
@@ -13,29 +14,10 @@ namespace Storytime.Core.Handlers.Items {
     }
 
     public async Task<ItemDto?> Handle(GetItemByIdQuery request, CancellationToken cancellationToken) {
-      // Then in the handler:
-      var query = _context.Items
-          .AsNoTracking()
-          .Where(i => i.Id == request.Id && i.IsActive);
-
       if (request.IncludeRelations) {
-        query = query
-            .Include(i => i.ItemType)
-            .Include(i => i.Relations)
-                .ThenInclude(r => r.RelatedItem)
-            .Include(i => i.Relations)
-                .ThenInclude(r => r.RelationType)
-            .Include(i => i.IncomingRelations)
-                .ThenInclude(r => r.Item)
-            .Include(i => i.IncomingRelations)
-                .ThenInclude(r => r.RelationType);
-      } else {
-        query = query.Include(i => i.ItemType);
+        return await _context.GetItemDtoById(request.Id, cancellationToken);
       }
-
-      var item = await query.FirstOrDefaultAsync(cancellationToken);
-
-      return item != null ? item.ToDto(request.IncludeRelations) : null;
+      return await _context.GetMinimalItemDtoById(request.Id, cancellationToken);
     }
   }
 }

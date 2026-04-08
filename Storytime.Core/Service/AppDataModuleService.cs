@@ -1,15 +1,16 @@
 ﻿using Azure.Core;
 using KB.Core.Entities;
-using Storytime.Core.Entities;
 using KB.Core.Models;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Storytime.Core.Agents;
+using Storytime.Core.Constants;
+using Storytime.Core.Entities;
 using Storytime.Core.Handlers.Export;
 using Storytime.Core.Handlers.Items;
-using Storytime.Core.Models;
 using Storytime.Core.Handlers.Queue;
+using Storytime.Core.Models;
 
 
 
@@ -20,7 +21,6 @@ namespace Storytime.Core.Service {
     string CurrentClaudeModel { get; set; }
     Task<List<ItemDto>> GetAllProjectItems();
     Task<ItemDto?> GetItemById(int? id);
-    Task<List<ItemRelationDto>> GetAllRelations();
     Task<List<ItemTypeDto>> GetAllItemTypes();
     Task<List<ItemRelationTypeDto>> GetAllRelationTypes();
     Task<ItemRelationDto?> UpdateItemRelation(ItemRelationDto relationDto);
@@ -85,57 +85,51 @@ namespace Storytime.Core.Service {
 
     public async Task<List<ItemDto>> GetAllProjectItems() {
       var context = GetDbContext();
-
-      var query = context.Items        
-        .Where(i => i.ItemTypeId == (int)StItemType.Project && i.IsActive 
-          && !i.IncomingRelations.Any(r => r.Item.ItemTypeId == (int)StItemType.Project))
-        .Include(i => i.ItemType)
-            .Include(i => i.Relations)
-                .ThenInclude(r => r.RelatedItem)
-            .Include(i => i.Relations)
-                .ThenInclude(r => r.RelationType)
-            .Include(i => i.IncomingRelations)
-                .ThenInclude(r => r.Item)
-            .Include(i => i.IncomingRelations)
-                .ThenInclude(r => r.RelationType)
-        .OrderBy(i => i.Name).Select(i => i.ToDto(true));      
-
-
-      var resultList = await query.ToListAsync();      
-      return resultList;
+      var result = await context.Items
+          .AsNoTracking()
+          .Where(i => i.ItemTypeId == (int)StItemType.Project
+                   && i.IsActive
+                   && !i.IncomingRelations.Any(r => r.Item.ItemTypeId == (int)StItemType.Project))
+          .OrderBy(i => i.Name)
+          .Select(i => new ItemDto {
+            Id = i.Id,
+            ItemTypeId = i.ItemTypeId,
+            ItemTypeName = i.ItemType.Name,
+            Name = i.Name,
+            Description = i.Description,
+            Data = i.Data,
+            Established = i.Established,
+            IsActive = i.IsActive,
+            Relations = i.Relations.Select(r => new ItemRelationDto {
+              Id = r.Id,
+              ItemId = r.ItemId,
+              ItemName = r.Item != null ? r.Item.Name : "",
+              RelatedItemId = r.RelatedItemId,
+              RelatedItemName = r.RelatedItem != null ? r.RelatedItem.Name : "",
+              RelationTypeId = r.RelationTypeId,
+              RelationTypeName = r.RelationType.Relation,
+              Rank = r.Rank,
+              Established = r.Established,
+              RelatedItemHasChildren = r.RelatedItem != null && r.RelatedItem.Relations.Any()
+            }).ToList(),
+            IncomingRelations = i.IncomingRelations.Select(r => new ItemRelationDto {
+              Id = r.Id,
+              ItemId = r.ItemId,
+              ItemName = r.Item != null ? r.Item.Name : "",
+              RelatedItemId = r.RelatedItemId,
+              RelationTypeId = r.RelationTypeId,
+              RelationTypeName = r.RelationType.Relation,
+              Rank = r.Rank,
+              Established = r.Established
+            }).ToList()
+          })
+          .ToListAsync();
+      return result;
     }
-
     public async Task<ItemDto?> GetItemById(int? id) {
       if (id == null) return null;
       var context = GetDbContext();
-      var query = context.Items
-          .AsNoTracking()
-          .Where(i => i.Id == id && i.IsActive)
-          .Include(i => i.ItemType)
-          .Include(i => i.Relations)
-              .ThenInclude(r => r.RelatedItem)
-          .Include(i => i.Relations)
-              .ThenInclude(r => r.RelationType)
-          .Include(i => i.IncomingRelations)
-              .ThenInclude(r => r.Item)
-          .Include(i => i.IncomingRelations)
-              .ThenInclude(r => r.RelationType);
-      var item = await query.FirstOrDefaultAsync();
-      return item != null ? item.ToDto(true) : null;
-    }
-
-    public async Task<List<ItemRelationDto>> GetAllRelations() {
-      var context = GetDbContext();
-      var query = context.ItemRelations
-        .Include(ir => ir.Item)
-        .Include(ir => ir.RelatedItem)
-        .Include(ir => ir.RelationType)
-        .AsNoTracking()
-        .AsQueryable();
-
-      query = query.OrderByDescending(ir => ir.Id);
-      var result = await query.Select(ir => ir.ToDto()).ToListAsync();
-      return result;
+      return await context.GetItemDtoById(id.Value);
     }
 
     public async Task<List<ItemTypeDto>> GetAllItemTypes() {
@@ -168,9 +162,7 @@ namespace Storytime.Core.Service {
 
     public async Task<ItemRelationDto?> CreateItemRelation(ItemRelationDto relationDto) {
       var context = GetDbContext();
-      var nextRank = await context.ItemRelations
-        .Where(ir => ir.ItemId == relationDto.ItemId)
-        .CountAsync() + 1;
+      var nextRank = await context.GetItemsNextRankId(relationDto.ItemId);
       var relation = new ItemRelation {
         ItemId = relationDto.ItemId,
         RelatedItemId = relationDto.RelatedItemId,
@@ -225,9 +217,7 @@ namespace Storytime.Core.Service {
       if (item == null || relationType == null) {
         return null;
       }
-      var nextRank = await context.ItemRelations
-        .Where(ir => ir.ItemId == itemId)
-        .CountAsync() + 1;
+      var nextRank = await context.GetItemsNextRankId(itemId);
       var relation = new ItemRelation {
         ItemId = itemId,
         RelatedItemId = relatedItemId,

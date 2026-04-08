@@ -1,6 +1,6 @@
-using StorytimeAr.Extensions;
+using StorytimeApp.Extensions;
 using Microsoft.Extensions.DependencyInjection;
-namespace StorytimeAr {
+namespace StorytimeApp {
   internal static class Program {
     /// <summary>
     ///  The main entry point for the application.

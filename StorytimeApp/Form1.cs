@@ -12,7 +12,7 @@ using Storytime.Core.Entities;
 using Storytime.Core.Handlers.Items;
 using Storytime.Core.Handlers.LmStudio;
 using Storytime.Core.Service;
-using StorytimeAr.Models;
+using StorytimeApp.Models;
 using System.Collections.Concurrent;
 using System.ComponentModel;
 using System.ComponentModel.Design;
@@ -24,9 +24,11 @@ using System.Threading.Tasks;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Forms;
+using System.Windows.Media.Imaging;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.TextBox;
 
 
-namespace StorytimeAr {
+namespace StorytimeApp {
   public partial class Form1 : Form {
     private readonly IServiceScopeFactory _scopeFactory;
     private ILogger<Form1> _logger;
@@ -49,6 +51,7 @@ namespace StorytimeAr {
     private async void Form1_Shown(object sender, EventArgs e) {
       await LoadProjectItems();
       await ReloadSchedule();
+      await LoadItemTypesCache();
     }
 
     private async Task LoadProjectItems() {
@@ -60,41 +63,83 @@ namespace StorytimeAr {
       btnAbortExport.Visible = false;
       btnUpdateExport.Visible = false;
       if (btnReloadTree.Visible) btnReloadTree.Visible = false;
+      List<int> expandedNodeIds = new List<int>();
+      int? selectedItemId = null;
 
       try {
-        int? selectedItemId = null;
-        bool isSelectedNodeRelation = false;
+
         if (tvKb.SelectedNode != null) {
-          isSelectedNodeRelation = (tvKb.SelectedNode as ItemNode)?.IsRelationNode ?? false;
-          selectedItemId = isSelectedNodeRelation ? (tvKb.SelectedNode as ItemNode)?.Relation?.Id : (tvKb.SelectedNode as ItemNode)?.Item?.Id;
+          selectedItemId = (tvKb.SelectedNode as ItemNode)?.Item?.Id;
+          if (selectedItemId.HasValue) expandedNodeIds.Add(selectedItemId.Value);
+          var workingNode = tvKb.SelectedNode as ItemNode;
+          while (workingNode?.Parent != null) {
+            workingNode = workingNode.Parent as ItemNode;
+            if (workingNode != null && workingNode.Item != null) {
+              expandedNodeIds.Add(workingNode.Item.Id);
+            }
+          }
         }
 
+        tvKb.BeginUpdate();
         tvKb.Nodes.Clear();
         _itemCache.Clear();
 
         var items = await _appDataModuleService.GetAllProjectItems();
-        foreach (var item in items) {
-          _itemCache[item.Id] = item;
-          ItemNode itemNode = item.ToItemNode();
-          var tnItem = tvKb.Nodes.Add(itemNode);
-          if (item.Relations.Count() > 0) {
-            foreach (var rel in item.Relations) {
-              var relatedItem = await AddNodeById(itemNode, rel.RelatedItemId, rel);
+        foreach (var project in items) {
+          _itemCache[project.Id] = project;
+          ItemNode projectNode = project.ToItemNode();          
+          if (project.Relations.Count() > 0) {
+            foreach (var rel in project.Relations) {
+              if (rel.RelatedItemId.HasValue) {
+
+                if (expandedNodeIds.Contains(rel.RelatedItemId.Value)) {
+                  await AddNodeById(expandedNodeIds, projectNode, rel.RelatedItemId.Value, rel);
+                } else {
+
+                  var item = await _appDataModuleService.GetItemById(rel.RelatedItemId);
+                  if (item != null) {
+                    _itemCache[item.Id] = item;
+
+                    ItemNode projectsChildNode = rel.ToItemNode(item);
+                    projectNode.Nodes.Add(projectsChildNode);
+
+
+                    if (item.Relations.Count() > 0) {
+                      var aTreeNode = new TreeNode(Cx.tvKbUnloadedNodeText);
+                      aTreeNode.Name = item.Id.ToString();
+                      projectsChildNode.Nodes.Add(aTreeNode);
+                    }
+                  }
+
+                }
+
+                
+
+              }
             }
+          }
+          var tnparentIndex = tvKb.Nodes.Add(projectNode);
 
+
+        }
+        tvKb.EndUpdate();
+        
+        if (expandedNodeIds.Count > 0 && selectedItemId.HasValue) {
+          // expandedNodeIds was built root-first so reverse gives you top-down
+          foreach (var id in expandedNodeIds.AsEnumerable().Reverse()) {
+            var nodelist = tvKb.Nodes.Find(id.ToString(), true);            
+            if (nodelist.Length > 0) { 
+               var node = nodelist[0];
+               node.Expand();              
+            }            
+          }          
+          var target = tvKb.Nodes.Find(selectedItemId.Value.ToString(), true);
+          if (target.Length > 0) {
+            tvKb.SelectedNode = target[0];
+            tvKb.SelectedNode.EnsureVisible();
           }
         }
 
-
-        await LoadItemTypesCache();
-
-        if (selectedItemId.HasValue) {
-          TreeNode[] foundNodes = tvKb.Nodes.Find(selectedItemId.Value.ToString(), true);
-          if (foundNodes.Length > 0) {
-            tvKb.SelectedNode = foundNodes[0];
-            tvKb.SelectedNode.Expand();
-          }
-        }
         ItemTabDirty = false;
 
         _logger.LogInformation("Loaded {Count} project items.", items.Count);
@@ -105,23 +150,68 @@ namespace StorytimeAr {
       }
     }
 
-    private async Task<ItemNode?> AddNodeById(ItemNode parent, int? itemId, ItemRelationDto? relation = null) {
+    private async Task<ItemNode?> AddNodeById(List<int> toLoad, ItemNode parent, int? itemId, ItemRelationDto? relation = null) {
       if (itemId == null) return null;
-      var item = await _appDataModuleService.GetItemById(itemId);
-      if (item != null) {
-        _itemCache[item.Id] = item;
-        ItemNode newNode = relation == null ? item.ToItemNode() : relation.ToItemNode(item);
-        parent.Nodes.Add(newNode);
-        if (item.Relations.Count() > 0) {
-          foreach (var rel in item.Relations) {
-            var relatedItem = await AddNodeById(newNode, rel.RelatedItemId, rel);
+
+      if (toLoad.Contains(itemId.Value)) {
+        var bItem = await _appDataModuleService.GetItemById(itemId);
+        if (bItem != null) {
+          _itemCache[bItem.Id] = bItem;
+          ItemNode newNode = relation == null ? bItem.ToItemNode() : relation.ToItemNode(bItem);
+          parent.Nodes.Add(newNode);
+          if (bItem.Relations.Count() > 0) {
+            foreach (var rel in bItem.Relations) {
+              var relatedItem = await AddNodeById(toLoad, newNode, rel.RelatedItemId, rel);
+            }
+          }
+          return newNode;
+        }        
+      } else {
+        if (relation == null) { return null; }
+        var aItem = await _appDataModuleService.GetItemById(relation.RelatedItemId);
+        if (aItem != null) {
+          _itemCache[aItem.Id] = aItem;
+          ItemNode projectsChildNode = relation.ToItemNode(aItem);
+          parent.Nodes.Add(projectsChildNode);
+          if (aItem.Relations.Count() > 0) {
+            var aTreeNode = new TreeNode(Cx.tvKbUnloadedNodeText);
+            aTreeNode.Name = aItem.Id.ToString();
+            projectsChildNode.Nodes.Add(aTreeNode);
           }
         }
-
-        return newNode;
       }
+
       return null;
     }
+
+    private async void tvKb_BeforeExpand(object sender, TreeViewCancelEventArgs e) {
+      if (e.Node is not ItemNode node) return;
+      if (node.Nodes.Count != 1 || node.Nodes[0].Text != Cx.tvKbUnloadedNodeText) return;
+
+      e.Cancel = true;  // prevent expand until data is ready
+      node.Nodes.Clear();
+      if (node.Item == null) return;
+      var item = await _appDataModuleService.GetItemById(node.Item.Id);
+      if (item != null) {
+        _itemCache[item.Id] = item;
+        foreach (var rel in item.Relations) {
+          if (rel.RelatedItemId.HasValue) {
+            var itemChild = await _appDataModuleService.GetItemById(rel.RelatedItemId);
+            if (itemChild != null) {
+              _itemCache[itemChild.Id] = itemChild;
+              ItemNode itemsChildNode = rel.ToItemNode(itemChild);
+              node.Nodes.Add(itemsChildNode);
+              if (itemChild.Relations.Count() > 0) {
+                itemsChildNode.Nodes.Add(new TreeNode(Cx.tvKbUnloadedNodeText));
+              }
+            }
+
+          }
+        }
+        node.Expand(); 
+      }
+    }
+
 
 
     private async Task LoadItemTypesCache() {
@@ -135,8 +225,8 @@ namespace StorytimeAr {
         edItemType.ValueMember = "Id";
 
       } catch (Exception ex) {
-        _logger.LogError(ex, "Error loading item types.");
-        MessageBox.Show("An error occurred while loading item types. Please check the logs for details.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        _logger.LogError(ex, "Error loading project types.");
+        MessageBox.Show("An error occurred while loading project types. Please check the logs for details.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
       }
       try {
         var RelationTypes = await _appDataModuleService.GetAllRelationTypes();
@@ -595,8 +685,8 @@ namespace StorytimeAr {
         }
 
       } catch (Exception ex) {
-        _logger.LogError(ex, "Error duplicating item.");
-        MessageBox.Show("An error occurred while duplicating the item. Please check the logs for details.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        _logger.LogError(ex, "Error duplicating project.");
+        MessageBox.Show("An error occurred while duplicating the project. Please check the logs for details.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
       }
     }
     #endregion
@@ -1126,19 +1216,27 @@ namespace StorytimeAr {
             string listing = "";
             var itemId = item.ItemId;
             if (itemId != 0) {
-              listing = $"{item.Id}: {_itemCache[itemId].Name}";
-              _todoCache[item.Id] = item;
-              var existingId = lbAgentQueue.Items.IndexOf(listing);
-              if (existingId == -1) {
-                var indx = lbAgentQueue.Items.Add(listing);
+              if (!_itemCache.Keys.Contains(itemId)) {
+                var itemDetails = await _appDataModuleService.GetItemById(itemId);
+                if (itemDetails != null) {
+                  _itemCache[itemId] = itemDetails;
+                }
+              }
+              if (_itemCache.Keys.Contains(itemId)) {
+                listing = $"{item.Id}: {_itemCache[itemId].Name}";
+                _todoCache[item.Id] = item;
+                var existingId = lbAgentQueue.Items.IndexOf(listing);
+                if (existingId == -1) {
+                  var indx = lbAgentQueue.Items.Add(listing);
+                }
               }
             }
           }
 
-          if (schedule.Count > 0) { 
+          if (schedule.Count > 0) {
             lbAgentQueue.SelectedIndex = 0;
             btnDeleteQueueItem.Enabled = true;
-          } else { 
+          } else {
             btnDeleteQueueItem.Enabled = false;
           }
         } finally {
@@ -1155,7 +1253,7 @@ namespace StorytimeAr {
     [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
     public bool EngineRunning {
       get { return _engineRunning; }
-      set {        
+      set {
         _engineRunning = value;
         if (_engineRunning) {
           lbWorkingStatus.Text = "Status: Pipeline Running";
@@ -1164,19 +1262,19 @@ namespace StorytimeAr {
         } else {
           lbWorkingStatus.Text = "Status: Pipeline Idle";
           btnStartStop.Text = "Start";
-          btnRunNextScheduled.Enabled = true;          
+          btnRunNextScheduled.Enabled = true;
         }
       }
     }
 
-    private void btnStartStop_Click(object sender, EventArgs e) {      
+    private void btnStartStop_Click(object sender, EventArgs e) {
       if (btnStartStop.Text == "Start") {
         EngineRunning = true;
         runTimer.Enabled = true;
       } else {
         runTimer.Enabled = false;
         EngineRunning = false;
-      }      
+      }
     }
 
     private bool _isRunningFromTimer = false;
@@ -1184,12 +1282,12 @@ namespace StorytimeAr {
       runTimer.Enabled = false;
       _isRunningFromTimer = true;
       try {
-        if (btnStartStop.Text == "Stop" ) {
+        if (btnStartStop.Text == "Stop") {
           await RunNextScheduledAsync();
         }
       } finally {
         _isRunningFromTimer = false;
-        if (btnStartStop.Text == "Stop" ) {
+        if (btnStartStop.Text == "Stop") {
           runTimer.Enabled = true;
           btnRunNextScheduled.Enabled = false;
         }
@@ -1207,11 +1305,11 @@ namespace StorytimeAr {
         DoUpdateWorkingMessage("Finished");
         return;
       }
-      if (_inScheduleReload ) {
+      if (_inScheduleReload) {
         MessageBox.Show("Schedule is loading, please try again.");
         return;
       }
-      if (btnRunNextScheduled.Enabled) btnRunNextScheduled.Enabled = false;     
+      if (btnRunNextScheduled.Enabled) btnRunNextScheduled.Enabled = false;
 
       string nextQueueItemString = "";
       int nextQueueItemId = 0;
@@ -1238,7 +1336,7 @@ namespace StorytimeAr {
 
       } catch (Exception ex1) {
         MessageBox.Show("Error failed to parse next items id.");
-        _logger.LogError(ex1, "failed to parse next item");
+        _logger.LogError(ex1, "failed to parse next project");
         return;
       }
 
@@ -1253,6 +1351,7 @@ namespace StorytimeAr {
         DoPublishProgress("Starting (" + Cx.AsString((StItemType)item.ItemTypeId) + "):" + nextQueueItemString + " destination being " + Cx.AsString(TargetDepth));
 
         int storyId = 0;
+        int sceneId = 0;
         var Started = DateTime.UtcNow;
         var workingTypeId = item.ItemTypeId;
         var workingId = item.Id;
@@ -1262,7 +1361,7 @@ namespace StorytimeAr {
           hasBeats = item.Relations.Any(r => r.RelationTypeId == (int)StRelationType.Contains);
         }
 
-        // Pre-resolve storyId for any item deeper than Story
+        // Pre-resolve storyId for any project deeper than Story
         if (workingTypeId != (int)StItemType.Project && workingTypeId != (int)StItemType.Story) {
           var aStoryId = await _mediator.Send(new GetAncestorIdByTypeQuery(workingId, StItemType.Story));
           if (aStoryId == null) return;
@@ -1306,9 +1405,10 @@ namespace StorytimeAr {
 
         // ── Scene → Beats ─────────────────────────────────────────────────────
         if (workingTypeId < (int)TargetDepth && workingTypeId == (int)StItemType.Scene && btnStartStop.Text == "Stop") {
+          sceneId = workingId;
           DoUpdateWorkingMessage($"Running Beats for {item.Name}");
           if (!hasBeats) {
-            await _mediator.Send(new GenerateBeatsForSceneCommand(storyId, workingId));
+            await _mediator.Send(new GenerateBeatsForSceneCommand(storyId, sceneId));
           }
           // advance regardless — menu entry is always on scene, beats live under it
           workingTypeId = (int)StItemType.Beat;
@@ -1316,9 +1416,8 @@ namespace StorytimeAr {
 
         // ── Beats → CallSheet ─────────────────────────────────────────────────
         if (workingTypeId < (int)TargetDepth && workingTypeId == (int)StItemType.Beat && btnStartStop.Text == "Stop") {
-          workingTypeId = (int)StItemType.CallSheet;
           DoUpdateWorkingMessage($"Running Director for {item.Name}");
-          await _mediator.Send(new GenerateCallSheetCommand(storyId, workingId));
+          await _mediator.Send(new GenerateCallSheetCommand(storyId, sceneId));
           item = await _mediator.Send(new GetItemByIdQuery(workingId, true));
           if (item == null) return;
           var nextItem = item.Relations
@@ -1335,7 +1434,7 @@ namespace StorytimeAr {
         // ── CallSheet → Performance ───────────────────────────────────────────
         if (workingTypeId < (int)TargetDepth && workingTypeId == (int)StItemType.CallSheet && btnStartStop.Text == "Stop") {
           DoUpdateWorkingMessage($"Running Performance for {item.Name}");
-          await _mediator.Send(new GeneratePerformanceForCallSheetCommand(storyId, workingId));
+          await _mediator.Send(new GeneratePerformanceForCallSheetCommand(workingId, storyId)); // goes callsheet then story. 
           item = await _mediator.Send(new GetItemByIdQuery(workingId, true));
           if (item == null) return;
           var nextItem = item.Relations
@@ -1359,12 +1458,12 @@ namespace StorytimeAr {
         await _appDataModuleService.UpateAgentQueueItemStatusCommand(anextItem.Id, AgentQueueStatus.Completed);
       } catch (Exception ex) {
 
-        _logger.LogError(ex, "Error running scheduled item.");
+        _logger.LogError(ex, "Error running scheduled project.");
         if (anextItem != null) {
           await _appDataModuleService.UpateAgentQueueItemStatusCommand(anextItem.Id, AgentQueueStatus.Failed);
         }
 
-      } finally {       
+      } finally {
         DoUpdateWorkingMessage("Finished");
         DoPublishProgress($"Run {nextQueueItemId} Completed.");
       }
@@ -1378,7 +1477,7 @@ namespace StorytimeAr {
       } else {
         if (message == "Finished" && (!_isRunningFromTimer || lbAgentQueue.Items.Count == 0)) {
           EngineRunning = false;
-        }        
+        }
         lbRunItemName.Text = message;
         if (!btnReloadTree.Visible) btnReloadTree.Visible = true;
       }
@@ -1410,14 +1509,14 @@ namespace StorytimeAr {
     private async void btnDeleteQueueItem_Click(object sender, EventArgs e) {
       var indx = lbAgentQueue.SelectedIndex;
       if (indx == -1) {
-        MessageBox.Show("Please select an item to delete.");
+        MessageBox.Show("Please select an project to delete.");
         return;
       }
       var lbitem = lbAgentQueue.Items;
       var nextQueueItemString = (string)lbitem[indx];
       var nextQueueItemId = nextQueueItemString.Split(':')[0].AsInt();
-      var confirmResult = MessageBox.Show($"Are you sure you want to delete queue item '{nextQueueItemString}'?", "Confirm Delete", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
-      if (confirmResult == DialogResult.Yes) { 
+      var confirmResult = MessageBox.Show($"Are you sure you want to delete queue project '{nextQueueItemString}'?", "Confirm Delete", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+      if (confirmResult == DialogResult.Yes) {
         await _appDataModuleService.UpateAgentQueueItemStatusCommand(nextQueueItemId, AgentQueueStatus.Cancelled);
         lbAgentQueue.Items.RemoveAt(indx);
       }
@@ -1451,5 +1550,6 @@ namespace StorytimeAr {
     #endregion
 
 
+    
   }
 }

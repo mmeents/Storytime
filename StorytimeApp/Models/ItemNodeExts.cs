@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using KB.Core.Models;
 
 
-namespace StorytimeAr.Models {
+namespace StorytimeApp.Models {
   public static class ItemNodeExts {
     public static ItemDto Clone(this ItemDto item) {
       return new ItemDto {

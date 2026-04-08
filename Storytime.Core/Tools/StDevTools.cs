@@ -11,18 +11,7 @@ using Storytime.Core.Constants;
 namespace Storytime.Core.Tools {
   public class StDevTools {
     private static IStDevToolsHandler GetTools() => DiBridgeService.GetService<IStDevToolsHandler>();
-
-    [McpTool(Cx.CmdAddCharacter, "Adds a new character to a story or scene, returns the story or scene with new character.")]
-    public static async Task<string> AddCharacterToStory(
-      [Description("Id of the parent story or scene item")]
-      int storyId,
-      [Description("Name of the new character")]
-      string name,
-      [Description("Description of the new character")]
-      string description = ""
-    ) => await GetTools().AddCharacterToStory(storyId, name, description);
-
-
+    
     [McpTool(Cx.CmdAddStory, "Adds a new story to a project, returns the project with the new story item.")]
     public static async Task<string> AddStoryToProject(
       [Description("Id of the parent project item")]
@@ -54,6 +43,17 @@ namespace Storytime.Core.Tools {
       [Description("Description of the new beat")]
       string description = ""
     ) => await GetTools().AddBeatToScene(sceneId, name, description);
+
+    [McpTool(Cx.CmdAddCharacter, "Adds a new character to a story, returns the story with new character.")]
+    public static async Task<string> AddCharacterToStory(
+      [Description("Id of the parent story or scene item")]
+      int storyId,
+      [Description("Name of the new character")]
+      string name,
+      [Description("Description of the new character")]
+      string description = ""
+    ) => await GetTools().AddCharacterToStory(storyId, name, description);
+
 
     [McpTool(Cx.CmdAddNarrationToCallSheet, "Adds a new narration to a call sheet, returns the call sheet with the new narration item.")]
     public static async Task<string> AddNarrationToCallSheet(

@@ -1,4 +1,5 @@
-﻿using Storytime.Core.Clients;
+﻿using Microsoft.Extensions.Logging;
+using Storytime.Core.Clients;
 using Storytime.Core.Constants;
 using Storytime.Core.Entities;
 using Storytime.Core.Models;
@@ -23,12 +24,8 @@ namespace Storytime.Core.Agents {
     ChatResponse? LastResponse { get; set; }
     List<ChatRequest> ChatRequests { get; set; }
     List<ChatResponse> ChatResponses { get; set; }
-
-    AgentStatus Status { get; }
-
-    
+    AgentStatus Status { get; }       
     Task<ChatResponse> InvokeAgentAsync(CancellationToken cancellationToken);
-
   }
 
   public enum AgentStatus { Idle, Running, Error }
@@ -37,11 +34,15 @@ namespace Storytime.Core.Agents {
     private readonly ILmStudioClient _lmStudioClient;
     private readonly StorytimeDbContext _context;
     private IFactorySettingsService _factorySettingsService;
-    public LocalBaseAgent(ILmStudioClient lmStudioClient, StorytimeDbContext context, IFactorySettingsService factorySettingsService) {
+    private ILogger<LocalBaseAgent> _logger;
+
+    public LocalBaseAgent(ILmStudioClient lmStudioClient, StorytimeDbContext context, IFactorySettingsService factorySettingsService, ILogger<LocalBaseAgent> logger) {
       _lmStudioClient = lmStudioClient;
       _context = context;
       _factorySettingsService = factorySettingsService;
+      _logger = logger;
       Model = _factorySettingsService.LMStudioModel;
+
     }
     
     public AgentStatus Status { get; private set; } = AgentStatus.Idle;
@@ -80,11 +81,13 @@ namespace Storytime.Core.Agents {
     
     public async Task<ChatResponse> InvokeAgentAsync(CancellationToken cancellationToken) {
       if (Status == AgentStatus.Running) {
+        _logger.LogError("BaseAgent status is running.");
         throw new InvalidOperationException("Agent is already running.");
       }
       Status = AgentStatus.Running;
       if (string.IsNullOrWhiteSpace(UserPrompt)) {
         Status = AgentStatus.Error;
+        _logger.LogError("UserPrompt cannot be null or empty.");
         throw new InvalidOperationException("UserPrompt cannot be null or empty.");
       }
       Model = _factorySettingsService.LMStudioModel;
@@ -126,6 +129,7 @@ namespace Storytime.Core.Agents {
         Status = AgentStatus.Error;
         log.Success = false;
         log.ErrorMessage = ex.Message +" "+theRequestWas;        
+        _logger.LogError(ex, "Error invoking LocalBaseAgent. Request: {Request}", theRequestWas);
         throw;
       } finally {
         await _context.AgentLogs.AddAsync(log);

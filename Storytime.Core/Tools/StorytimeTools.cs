@@ -12,6 +12,9 @@ namespace Storytime.Core.Tools {
   public class StorytimeTools {
     private static IStorytimeToolsHandler GetTools() => DiBridgeService.GetService<IStorytimeToolsHandler>();
 
+    [McpTool(Cx.CmdGetHelp, "Gets help text describing all available commands and how to use them.")]
+    public static string GetHelp() => GetTools().GetHelpText();
+
     [McpTool(Cx.CmdGetProjects, "Gets all items of type project, they are the root items only, limited relations. ")]
     public static async Task<string> GetProjects() => await GetTools().GetProjectItems();
 

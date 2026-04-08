@@ -6,15 +6,12 @@ using Storytime.Core.Handlers.Items;
 using Storytime.Core.Handlers.ItemRelations;
 using Storytime.Core.Handlers.AsGraph;
 using Storytime.Core.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
+using Storytime.Core.Constants;
 
 namespace Storytime.Core.Tools {
   public interface IStorytimeToolsHandler {
+    string GetHelpText();
     Task<string> GetProjectItems();
     Task<string> GetItemById(int id);
     Task<string> CreateRelatedItem(int parentItemId, int relationTypeId, int itemTypeId, string name, string description, string data);
@@ -34,6 +31,34 @@ namespace Storytime.Core.Tools {
     public StorytimeToolsHandler(IServiceScopeFactory serviceScopeFactory, ILogger<StorytimeToolsHandler> logger) {
       _serviceScopeFactory = serviceScopeFactory;
       _logger = logger;
+    }
+
+    // Storytime tools are spread across 3 main handlers.
+    public string GetHelpText() {
+      var helpText = new Dictionary<string, string> {
+        { "Notes:", "use dashes never underline characters for commands. "},
+        { Cx.CmdGetHelp, "was used to get this text" },
+
+        { Cx.CmdGetProjects, "returns list of projects, root items only" },
+
+        { Cx.CmdGetById, "item lookup, items are the nouns. all ids are type int" },
+        { Cx.CmdGetSubgraph, "root and related items out to depth levels of items deep.  Parameters: int itemId, int depth" },
+        
+        { Cx.CmdAddStory, "Adds a story to a project. Parameters: int projectId, string name, string description." },
+
+        { Cx.CmdAddScene, "Adds a scene to a story. Parameters: int storyId, string name, string description." },
+
+        { Cx.CmdAddBeat, "Adds a beat to a scene. Parameters: int sceneId, string name, string description." },
+        { Cx.CmdAddCharacter, "Adds a character to a story. Parameters: int storyId, string name, string description." },
+                
+        { Cx.CmdAddNarrationToCallSheet, "Adds a narration beat to a call sheet. Parameters: int callSheetId, string name, string description" },
+        { Cx.CmdAddRoleToCallSheet, "Adds a character role to a call sheet. Parameters: int callSheetId, int characterId, string name, string description" },
+        
+        { Cx.CmdAddCharacterAction, "Adds an action to a performance for a character. Parameters: int performanceId, int characterId, string characterName, string action" },
+        { Cx.CmdAddCharacterSpeak, "Adds a speak moment to a performance for a character. Parameters: int performanceId, int characterId, string characterName, string line" },
+       
+      };
+      return JsonSerializer.Serialize(helpText);
     }
 
     public async Task<string> GetProjectItems() {

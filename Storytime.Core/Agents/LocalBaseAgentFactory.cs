@@ -30,10 +30,10 @@ namespace Storytime.Core.Agents {
     }
 
     public ILocalBaseAgent Create() => _factorySettingsService.CurrentMode switch {
-      AgentRunnerMode.ClaudeCode => _services.GetRequiredService<ClaudeCodeBaseAgent>(),
-    //  AgentRunnerMode.CopilotCli => _services.GetRequiredService<CopilotCliBaseAgent>(),  untested.
+      AgentRunnerMode.ClaudeCode => _services.GetRequiredService<ClaudeCodeBaseAgent>(),    
       _ => _services.GetRequiredService<LocalBaseAgent>()
     };
+    // in time AgentRunnerMode.CopilotCli => _services.GetRequiredService<CopilotCliBaseAgent>(),  untested.
   }
 
 

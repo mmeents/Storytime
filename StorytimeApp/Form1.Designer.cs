@@ -1,4 +1,4 @@
-﻿namespace StorytimeAr {
+﻿namespace StorytimeApp {
   partial class Form1 {
     /// <summary>
     ///  Required designer variable.
@@ -192,6 +192,7 @@
       tvKb.SelectedImageIndex = 0;
       tvKb.Size = new Size(270, 471);
       tvKb.TabIndex = 0;
+      tvKb.BeforeExpand += tvKb_BeforeExpand;
       tvKb.ItemDrag += tvKb_ItemDrag;
       tvKb.AfterSelect += tvKb_AfterSelect;
       tvKb.DragDrop += tvKb_DragDrop;
@@ -1070,7 +1071,6 @@
       fclbDescription.DisabledColor = Color.FromArgb(100, 180, 180, 180);
       fclbDescription.Dock = DockStyle.Bottom;
       fclbDescription.FindForm = null;
-      fclbDescription.Font = new Font("Courier New", 9.75F);
       fclbDescription.GoToForm = null;
       fclbDescription.Hotkeys = resources.GetString("fclbDescription.Hotkeys");
       fclbDescription.IsReplaceMode = false;

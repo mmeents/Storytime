@@ -3,8 +3,8 @@ using Storytime.Core.Agents;
 
 namespace Storytime.Core.Handlers.LmStudio {
   public record GeneratePerformanceForCallSheetCommand(
-    int StoryId,
-    int CallSheetId
+    int CallSheetId,
+    int StoryId    
     
   ) : IRequest<bool>;
 

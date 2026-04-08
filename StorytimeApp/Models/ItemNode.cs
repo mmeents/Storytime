@@ -7,10 +7,9 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace StorytimeAr.Models {
+namespace StorytimeApp.Models {
   public partial class ItemNode : TreeNode {
-    public ItemNode(): base() { }
-    public bool IsRelationNode { get; set; } = false;
+    public ItemNode(): base() { }    
     public ItemDto? Item { get; set; } = null;
     public ItemRelationDto? Relation { get; set; } = null;
 
@@ -25,8 +24,7 @@ namespace StorytimeAr.Models {
         ImageIndex = item.ItemTypeId,
         SelectedImageIndex = item.ItemTypeId,
         Text = item.Name,
-        Item = item,
-        IsRelationNode = false
+        Item = item
       };
       return node;
     }
@@ -39,8 +37,7 @@ namespace StorytimeAr.Models {
         SelectedImageIndex = item.ItemTypeId,
         Text = item.Name,
         Item = item,
-        Relation = relation,
-        IsRelationNode = true
+        Relation = relation
       };
       return node;
     }

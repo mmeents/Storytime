@@ -3,14 +3,17 @@ using Storytime.Core.Models;
 using Storytime.Core.Constants;
 using Storytime.Core.Service;
 using System.Diagnostics;
+using Microsoft.Extensions.Logging;
 
 namespace Storytime.Core.Agents {
   public class ClaudeCodeBaseAgent : ILocalBaseAgent {
     private readonly StorytimeDbContext _context;
     private readonly IFactorySettingsService _factorySettingsService;
-    public ClaudeCodeBaseAgent(StorytimeDbContext context, IFactorySettingsService factorySettingsService) {
+    private readonly ILogger<ClaudeCodeBaseAgent> _logger;
+    public ClaudeCodeBaseAgent(StorytimeDbContext context, IFactorySettingsService factorySettingsService, ILogger<ClaudeCodeBaseAgent> logger) {
       _context = context;
       _factorySettingsService = factorySettingsService;
+      _logger = logger;
       Model = _factorySettingsService.ClaudeModel;
     }
 
@@ -30,12 +33,15 @@ namespace Storytime.Core.Agents {
 
     public async Task<ChatResponse> InvokeAgentAsync(CancellationToken cancellationToken) {
       
-      if (Status == AgentStatus.Running)
+      if (Status == AgentStatus.Running) {
+        _logger.LogError("ClaudeCodeBaseAgent status is running.");
         throw new InvalidOperationException("Agent is already running.");
+      }
 
       Status = AgentStatus.Running;
       if (string.IsNullOrWhiteSpace(UserPrompt)) {
         Status = AgentStatus.Error;
+        _logger.LogError("ClaudeCodeBaseAgent UserPrompt cannot be null or empty.");
         throw new InvalidOperationException("UserPrompt cannot be null or empty.");
       }
       Model = _factorySettingsService.ClaudeModel;
@@ -103,6 +109,7 @@ namespace Storytime.Core.Agents {
         Status = AgentStatus.Error;
         log.Success = false;
         log.ErrorMessage = ex.Message;
+        _logger.LogError(ex, "Error invoking ClaudeCodeBaseAgent.");
         throw;
       } finally {
         await _context.AgentLogs.AddAsync(log);

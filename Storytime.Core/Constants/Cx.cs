@@ -28,26 +28,40 @@ namespace Storytime.Core.Constants {
     public const string ValidRelationTypes = "Relation types(id:type): 1:Contains, 4:UsesRule, 5:FeaturesCharacter, 6:TakesPlaceAt, 7:UsesTone, 8:DirectedAs, 9:Produces 10:HasRole;";
     public const string ValidItemTypes = "Item types(id:name): 1:Project, 2:Story, 3:Scene, 4:Beat, 5:Character, 6:Location, 7:Rule, 8:Tone, 9:CallSheet, 10:Performance, 11:Deliverable;";
 
+    public const string CmdGetHelp = "help";
+
     public const string CmdGetProjects = "get-projects";
     public const string CmdGetById = "get-item-by-id";
     public const string CmdGetSubgraph = "get-subgraph";
-    public const string CmdAddCharacter = "add-character-to-story";
-    public const string CmdAddStory = "add-story-to-project";
-    public const string CmdAddScene = "add-scene-to-story";
-    public const string CmdAddBeat = "add-beat-to-scene";
-    public const string CmdAddCallSheet = "add-call-sheet-to-scene";
-    public const string CmdAddNarrationToCallSheet = "add-narration-to-call-sheet";
-    public const string CmdAddRoleToCallSheet = "add-role-to-call-sheet";
+    
+    public const string CmdAddStory = "add-story"; //-to-project"; //    
 
+    public const string CmdAddScene = "add-scene"; //-to-story";
+    public const string CmdAddCharacter = "add-character"; //-to-story";
+
+    public const string CmdAddBeat = "add-beat"; //-to-scene";
+
+    // director
+    public const string CmdAddNarrationToCallSheet = "add-narration";//-to-call-sheet";
+    public const string CmdAddRoleToCallSheet = "add-role";//-to-call-sheet";
+
+    // performance
+    public const string CmdAddCharacterAction = "add-action"; // add-character-action-to-performance";
+    public const string CmdAddCharacterSpeak = "add-dialogue"; // "add-character-speak-to-performance"
+
+
+/*  // disabled 
     public const string CmdAddRelationItem = "create-related-item";
     public const string CmdAddItem = "create-item";
     public const string CmdUpdateItem = "update-item";
     public const string CmdGetRelationById = "get-relation-by-id";
     public const string CmdAddRelataion = "create-relation";
-    public const string CmdUpdateRelation = "update-relation";
+    public const string CmdUpdateRelation = "update-relation";  */
 
-    public const string CmdAddCharacterAction = "add-character-action-to-performance";
-    public const string CmdAddCharacterSpeak = "add-character-speak-to-performance";
+
+    public const string tvKbUnloadedNodeText = "...loading...";
+
+
 
     public static string AsString(this StItemType type) { 
         return type switch {
