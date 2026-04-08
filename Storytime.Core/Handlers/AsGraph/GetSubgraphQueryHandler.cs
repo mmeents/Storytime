@@ -2,6 +2,7 @@
 using KB.Core.Models;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Storytime.Core.Constants;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,25 +17,19 @@ namespace Storytime.Core.Handlers.AsGraph {
 
     public async Task<SubgraphDto> Handle(GetSubgraphQuery request, CancellationToken cancellationToken) {
       var visited = new HashSet<int>();
-      var root = await _context.Items
-          .Include(i => i.ItemType)
-          .Include(i => i.Relations)
-              .ThenInclude(r => r.RelatedItem)
-          .Include(i => i.Relations)
-              .ThenInclude(r => r.RelationType)
-          .FirstOrDefaultAsync(i => i.Id == request.itemId && i.IsActive, cancellationToken)
+      var root = await _context.GetItemDtoById(request.itemId, cancellationToken)
           ?? throw new KeyNotFoundException("Root item not found");
 
       visited.Add(root.Id);
 
       return new SubgraphDto {
-        Root = root.ToDto(),
+        Root = root,
         Nodes = await BuildChildren(root, 1, request.depth, visited, cancellationToken)
       };
     }
 
     private async Task<ICollection<SubgraphNodeDto>> BuildChildren(
-    Item parent, int level, int maxDepth,
+    ItemDto parent, int level, int maxDepth,
     HashSet<int> visited, CancellationToken cancellationToken) {
       if (level > maxDepth) return [];
 
@@ -45,19 +40,13 @@ namespace Storytime.Core.Handlers.AsGraph {
         if (visited.Contains(relatedId)) continue;  // cycle guard
         visited.Add(relatedId);
 
-        var child = await _context.Items
-            .Include(i => i.ItemType)
-            .Include(i => i.Relations)
-                .ThenInclude(r => r.RelatedItem)
-            .Include(i => i.Relations)
-                .ThenInclude(r => r.RelationType)
-            .FirstOrDefaultAsync(i => i.Id == relatedId && i.IsActive, cancellationToken);
+        var child = await _context.GetItemDtoById(relatedId, cancellationToken);
 
         if (child == null) continue;
 
         nodes.Add(new SubgraphNodeDto {
-          Item = child.ToDto(),
-          Relation = relation.ToDto(),
+          Item = child,
+          Relation = relation,
           Level = level,
           Children = await BuildChildren(child, level + 1, maxDepth, visited, cancellationToken)
         });

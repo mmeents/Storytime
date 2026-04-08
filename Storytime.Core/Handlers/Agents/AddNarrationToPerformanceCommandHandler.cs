@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Storytime.Core.Models;
 using System.Text.Json;
+using Storytime.Core.Constants;
 
 
 namespace Storytime.Core.Handlers.Agents {
@@ -29,6 +30,7 @@ namespace Storytime.Core.Handlers.Agents {
 
       var performance = await _context.Items
           .FirstOrDefaultAsync(i => i.Id == request.PerformanceId && i.IsActive, cancellationToken);
+
       if (performance == null) {
         _logger.LogError("Performance with id {PerformanceId} not found", request.PerformanceId);
         throw new Exception($"Performance with id {request.PerformanceId} not found");
@@ -54,13 +56,9 @@ namespace Storytime.Core.Handlers.Agents {
         _context.Items.Update(performance);
         await _context.SaveChangesAsync(cancellationToken);
 
-        var result = await _context.Items
-            .AsNoTracking()
-            .Where(i => i.Id == request.PerformanceId && i.IsActive)
-            .Include(i => i.ItemType)
-            .FirstOrDefaultAsync(cancellationToken);
+        var result = await _context.GetMinimalItemDtoById(request.PerformanceId, cancellationToken);
 
-        return result?.ToDto(false);
+        return result;
 
       } catch (Exception ex) {
         _logger.LogError(ex, "Failed to add narration to performance with id {PerformanceId}: {Message}", request.PerformanceId, ex.Message);

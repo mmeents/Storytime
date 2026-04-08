@@ -48,13 +48,13 @@ namespace Storytime.Core.Agents {
         _baseAgent.SystemPrompt = $"You are Dave, the Development Manager at {Cx.AppName}. " + Environment.NewLine+
           $"Your role is to generate compelling, unique story ideas that align with a project's theme and tone. "+ Environment.NewLine +
           "Attach it to the organization's knowledge " +
-          $"graph with the {Cx.LMStudioStorytimeMcpToolName} {Cx.CmdAddStory} tool.";      
+          $"graph with the {Cx.LMStudioStorytimeMcpToolName} {Cx.CmdAddProjectStory} tool.";      
 
         _baseAgent.UserPrompt = $"Generate 1 new unique story idea for project with id {projectId}: "+
           $"Project Name: {projectName}" + Environment.NewLine +
           $"Project Description: {projectDescription}" + Environment.NewLine + 
           $"Existing Stories (do not duplicate thse): {existingStoryIdeasText}"+Environment.NewLine +        
-          $"And finally, Using the {Cx.LMStudioStorytimeMcpToolName} {Cx.CmdAddStory} tool, thanks.";
+          $"And finally, Using the {Cx.LMStudioStorytimeMcpToolName} {Cx.CmdAddProjectStory} tool, thanks.";
 
       
         var response = await _baseAgent.InvokeAgentAsync(cancellationToken);

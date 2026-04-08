@@ -41,8 +41,11 @@ namespace Storytime.Core.Agents {
         throw new Exception($"CallSheet {callSheetId} has no Script. Run the Director first.");
       }
 
-      var script = JsonSerializer.Deserialize<CallSheetScript>(callSheet.Root.Data)
-          ?? throw new Exception($"Failed to deserialize CallSheet {callSheetId} Script.");
+      var script = JsonSerializer.Deserialize<CallSheetScript>(callSheet.Root.Data);
+      if (script == null) {
+        _logger.LogError("Failed to deserialize CallSheet {callSheetId} Script.", callSheetId);
+        throw new Exception($"Failed to deserialize CallSheet {callSheetId} Script.");
+      }
 
       if (!script.Script.Any()) { 
         _logger.LogError("CallSheet {callSheetId} Script is empty.", callSheetId);
@@ -55,7 +58,7 @@ namespace Storytime.Core.Agents {
         _logger.LogError("Story with id {storyId} not found.", storyId);
         throw new Exception($"Story with id {storyId} not found.");
       }
-
+      var storyName = story.Root.Name;
       var characterMap = story.Nodes
           .Where(n => n.Item.ItemTypeId == (int)StItemType.Character)
           .ToDictionary(n => n.Item.Id, n => n.Item);
@@ -68,7 +71,7 @@ namespace Storytime.Core.Agents {
               $"Live performance generated from call sheet: {callSheet.Root.Name}"
           ), ct);
 
-      if (performanceDto == null) {
+      if (performanceDto == null || performanceDto.ItemTypeId != (int)StItemType.Performance) {
         _logger.LogError("Failed to create Performance for CallSheet {callSheetId}.", callSheetId);
         throw new Exception($"Failed to create Performance for CallSheet {callSheetId}.");
       }
@@ -117,7 +120,7 @@ namespace Storytime.Core.Agents {
               : $"Scene so far:\n{performanceSoFar}";
 
           _baseAgent.SystemPrompt =
-              $"You are {entry.Name}, a character in {Cx.AppName}." + Environment.NewLine +
+              $"You are {entry.Name}, a character in {storyName} performance." + Environment.NewLine +
               $"Who you are: {characterDescription}" + Environment.NewLine +
               $"Director's instruction for this moment: {entry.Instruction}" + Environment.NewLine +
               "Express yourself using the tools available:" + Environment.NewLine +
@@ -125,7 +128,7 @@ namespace Storytime.Core.Agents {
               $"  {Cx.CmdAddCharacterAction} — do something, react, perform." + Environment.NewLine +
               "Make your tool calls first. Then after your calls, respond in character — " +
               "a brief inner thought, reaction, or closing beat. Stay in character. " +
-              "No JSON or curly brackets in tool parameters. Thanks.";
+              "No JSON or curly brackets in tool call parameters. Thanks.";
 
           _baseAgent.UserPrompt =
               $"{contextBlock}\n\n" +

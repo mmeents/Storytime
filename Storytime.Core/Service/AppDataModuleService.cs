@@ -274,7 +274,7 @@ namespace Storytime.Core.Service {
         using var scope = _scopeFactory.CreateScope();
         var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
         
-        var command = new Handlers.LmStudio.GeneratePerformanceForCallSheetCommand(storyId, callSheetId);
+        var command = new Handlers.LmStudio.GeneratePerformanceForCallSheetCommand(callSheetId, storyId);
         var result = await mediator.Send(command);
         return result;
     }

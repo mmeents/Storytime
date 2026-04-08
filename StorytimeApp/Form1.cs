@@ -816,9 +816,14 @@ namespace StorytimeApp {
       }
     }
     private async void btnGetLmStudioModels_Click(object sender, EventArgs e) {
-      var models = await _appDataModuleService.GetLmStudioModels();
-      lbLMStudioModels.Items.Clear();
-      lbLMStudioModels.Items.AddRange(models.ToArray());
+      try {
+        var models = await _appDataModuleService.GetLmStudioModels();
+        lbLMStudioModels.Items.Clear();
+        lbLMStudioModels.Items.AddRange(models.ToArray());
+      } catch (Exception ex) {
+        _logger.LogError(ex, "Error retrieving LM Studio models.");
+        MessageBox.Show("An error occurred while retrieving LM Studio models. Please check the logs for details.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+      }      
     }
 
     private void lbLaunchCmd_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e) {
@@ -1298,6 +1303,11 @@ namespace StorytimeApp {
       await RunNextScheduledAsync();
     }
 
+    private void DoErrorStop(string message) {
+      MessageBox.Show(message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+      throw new Exception(message);
+    }
+
     private async Task RunNextScheduledAsync() {
 
       if (lbAgentQueue.Items.Count == 0) {
@@ -1347,7 +1357,9 @@ namespace StorytimeApp {
           btnStartStop.Text = "Stop";
         }
         var item = await _mediator.Send(new GetItemByIdQuery(itemId, true));
-        if (item == null) return;
+        if (item == null) {
+          DoErrorStop("Failed to find item for next queue item.");          
+        }
         DoPublishProgress("Starting (" + Cx.AsString((StItemType)item.ItemTypeId) + "):" + nextQueueItemString + " destination being " + Cx.AsString(TargetDepth));
 
         int storyId = 0;
@@ -1358,13 +1370,16 @@ namespace StorytimeApp {
         var hasBeats = false;
 
         if (item.ItemTypeId == (int)StItemType.Scene) {
+          sceneId = item.Id;
           hasBeats = item.Relations.Any(r => r.RelationTypeId == (int)StRelationType.Contains);
         }
 
         // Pre-resolve storyId for any project deeper than Story
         if (workingTypeId != (int)StItemType.Project && workingTypeId != (int)StItemType.Story) {
           var aStoryId = await _mediator.Send(new GetAncestorIdByTypeQuery(workingId, StItemType.Story));
-          if (aStoryId == null) return;
+          if (aStoryId == null) {
+            DoErrorStop("Failed to find ancestor story for item.");
+          }
           storyId = aStoryId.Value;
         }
 
@@ -1373,15 +1388,24 @@ namespace StorytimeApp {
           DoUpdateWorkingMessage($"Running Story for {item.Name}");
           await _mediator.Send(new GenerateStoryCommand(workingId));
           item = await _mediator.Send(new GetItemByIdQuery(itemId, true));
-          if (item == null) return;
+          if (item == null) {
+            DoErrorStop("Failed to find story for project.");
+          }
+
           var nextItem = item.Relations
             .Where(r => r.RelationTypeId == (int)StRelationType.Contains && r.Established > Started)
             .OrderByDescending(r => r.Established).ToList();
-          if (nextItem.Count == 0) return;
+
+          if (nextItem.Count == 0) {
+            DoErrorStop("Failed to find added story in project");
+            return;
+          }
           workingId = nextItem[0].RelatedItemId!.Value;
           item = await _mediator.Send(new GetItemByIdQuery(workingId, true));
           DoPublishProgress("Added (" + Cx.AsString((StItemType)item.ItemTypeId) + "):" + nextQueueItemString + " destination being " + Cx.AsString(TargetDepth));
-          if (item == null) return;
+          if (item == null) {
+            DoErrorStop("Failed to find item for next queue item.");
+          }
           workingTypeId = item.ItemTypeId;
         }
 
@@ -1391,15 +1415,25 @@ namespace StorytimeApp {
           storyId = workingId;
           await _mediator.Send(new GenerateSceneAndCharacterForStoryCommand(workingId));
           item = await _mediator.Send(new GetItemByIdQuery(workingId, true));
-          if (item == null) return;
+          if (item == null) {
+            DoErrorStop("Failed to find story in add scene");
+            return;
+          }
           var nextItem = item.Relations
             .Where(r => r.RelationTypeId == (int)StRelationType.Contains && r.Established > Started)
             .OrderByDescending(r => r.Established).ToList();
-          if (nextItem.Count == 0) return;
+
+          if (nextItem.Count == 0) {
+            DoErrorStop("Failed to find scene in add Story");
+            return;
+          }
           workingId = nextItem[0].RelatedItemId!.Value;  // sceneId
           item = await _mediator.Send(new GetItemByIdQuery(workingId, true));
           DoPublishProgress("Added (" + Cx.AsString((StItemType)item.ItemTypeId) + "):" + nextQueueItemString + " destination being " + Cx.AsString(TargetDepth));
-          if (item == null) return;
+          if (item == null) {
+            DoErrorStop("Failed to find scene after add Story");
+            return;
+          }
           workingTypeId = item.ItemTypeId; // Scene        
         }
 
@@ -1408,25 +1442,35 @@ namespace StorytimeApp {
           sceneId = workingId;
           DoUpdateWorkingMessage($"Running Beats for {item.Name}");
           if (!hasBeats) {
-            await _mediator.Send(new GenerateBeatsForSceneCommand(storyId, sceneId));
+            await _mediator.Send(new GenerateBeatsForSceneCommand(storyId, sceneId));            
           }
           // advance regardless — menu entry is always on scene, beats live under it
           workingTypeId = (int)StItemType.Beat;
         }
 
-        // ── Beats → CallSheet ─────────────────────────────────────────────────
+        // ── Scene → CallSheet ─────────────────────────────────────────────────
         if (workingTypeId < (int)TargetDepth && workingTypeId == (int)StItemType.Beat && btnStartStop.Text == "Stop") {
           DoUpdateWorkingMessage($"Running Director for {item.Name}");
           await _mediator.Send(new GenerateCallSheetCommand(storyId, sceneId));
-          item = await _mediator.Send(new GetItemByIdQuery(workingId, true));
-          if (item == null) return;
+          item = await _mediator.Send(new GetItemByIdQuery(sceneId, true));
+          if (item == null) {
+            DoErrorStop("Failed to find scene in add callsheet");
+            return;
+          }
           var nextItem = item.Relations
             .Where(r => r.RelationTypeId == (int)StRelationType.DirectedAs && r.Established > Started)
             .OrderByDescending(r => r.Established).ToList();
-          if (nextItem.Count == 0) return;
+
+          if (nextItem.Count == 0) {
+            DoErrorStop("Failed to find call sheet in scene.");
+            return;
+          }
           workingId = nextItem[0].RelatedItemId!.Value; // callSheetId
           item = await _mediator.Send(new GetItemByIdQuery(workingId, true));
-          if (item == null) return;
+          if (item == null) {
+            DoErrorStop("Failed to find callsheet direct lookup after create.");
+            return;  
+          }
           DoPublishProgress("Added (" + Cx.AsString((StItemType)item.ItemTypeId) + "):" + nextQueueItemString + " destination being " + Cx.AsString(TargetDepth));
           workingTypeId = item.ItemTypeId; // CallSheet
         }
@@ -1434,16 +1478,25 @@ namespace StorytimeApp {
         // ── CallSheet → Performance ───────────────────────────────────────────
         if (workingTypeId < (int)TargetDepth && workingTypeId == (int)StItemType.CallSheet && btnStartStop.Text == "Stop") {
           DoUpdateWorkingMessage($"Running Performance for {item.Name}");
-          await _mediator.Send(new GeneratePerformanceForCallSheetCommand(workingId, storyId)); // goes callsheet then story. 
+          await _mediator.Send(new GeneratePerformanceForCallSheetCommand(workingId, storyId));
           item = await _mediator.Send(new GetItemByIdQuery(workingId, true));
-          if (item == null) return;
+          if (item == null) {
+            DoErrorStop("Failed to find call sheet for performance.");
+            return;
+          }
           var nextItem = item.Relations
             .Where(r => r.RelationTypeId == (int)StRelationType.Produces && r.Established > Started)
             .OrderByDescending(r => r.Established).ToList();
-          if (nextItem.Count == 0) return;
+          if (nextItem.Count == 0) {
+            DoErrorStop("Failed to find call sheet for performance from within relations.");
+            return;
+          }
           workingId = nextItem[0].RelatedItemId!.Value; // performanceId
           item = await _mediator.Send(new GetItemByIdQuery(workingId, true));
-          if (item == null) return;
+          if (item == null) {
+            DoErrorStop("Failed to find new performance.");
+            return;
+          }
           DoPublishProgress("Added (" + Cx.AsString((StItemType)item.ItemTypeId) + "):" + nextQueueItemString + " destination being " + Cx.AsString(TargetDepth));
           workingTypeId = item.ItemTypeId; // Performance
         }

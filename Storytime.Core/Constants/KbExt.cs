@@ -61,14 +61,14 @@ namespace Storytime.Core.Constants {
           .AsNoTracking()
           .Where(i => i.Id == Id && i.IsActive)
           .Select(i => new ItemDto {
-             Id = i.Id,
-          ItemTypeId = i.ItemTypeId,
-          ItemTypeName = i.ItemType.Name,
-          Name = i.Name,
-          Description = i.Description,
-          Data = i.Data,
-          Established = i.Established,
-          IsActive = i.IsActive,   
+            Id = i.Id,
+            ItemTypeId = i.ItemTypeId,
+            ItemTypeName = i.ItemType.Name,
+            Name = i.Name,
+            Description = i.Description,
+            Data = i.Data,
+            Established = i.Established,
+            IsActive = i.IsActive,   
           })
           .FirstOrDefaultAsync(cancellationToken);
 

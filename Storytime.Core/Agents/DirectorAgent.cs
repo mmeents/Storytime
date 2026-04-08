@@ -73,9 +73,8 @@ namespace Storytime.Core.Agents {
             $"The Call Sheet has already been created. Call Sheet Id: {callSheetId}." + Environment.NewLine +
             "Build the call sheet in the exact dramatic order the scene should play out." + Environment.NewLine +
             "Use these two tools to do it:" + Environment.NewLine +
-            $"  {Cx.CmdAddRoleToCallSheet} - cast a character with their acting instruction." + Environment.NewLine +
-            $"  {Cx.CmdAddNarrationToCallSheet} - add a narration beat between character moments." + Environment.NewLine +
-            "Never forget: No _ underscore in tool names, always dashes - " + Environment.NewLine +
+            $"  {Cx.CmdAddCallSheetRole} - cast a character with their acting instruction." + Environment.NewLine +
+            $"  {Cx.CmdAddCallSheetNarration} - add a narration beat between character moments." + Environment.NewLine +            
             "Interleave narration and roles naturally — the order of your calls is the order of playback." + Environment.NewLine +
             "Important: no curly brackets or JSON characters in tool call parameters. Thanks.";
 

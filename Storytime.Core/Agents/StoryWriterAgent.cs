@@ -41,7 +41,7 @@ namespace Storytime.Core.Agents {
         _baseAgent.SystemPrompt =
             $"You are the Creative Story Writer."+Environment.NewLine +
              "You are to create at least one new unique scene. Optionally add characters if not there on the story. " + Environment.NewLine +                    
-            $"Use {Cx.CmdAddScene} mcp tool to persist the scene. Use {Cx.CmdAddCharacter} mcp tool to persist the characters. {Cx.CmdGetById} to retreive an item. "+
+            $"Use {Cx.CmdAddStoryScene} mcp tool to persist the scene. Use {Cx.CmdAddStoryCharacter} mcp tool to persist the characters. {Cx.CmdGetById} to retreive an item. "+
             "Important, within the tool call parameters, no curly brackets or JSON characters, they will break calls. thanks";
 
         _baseAgent.UserPrompt =

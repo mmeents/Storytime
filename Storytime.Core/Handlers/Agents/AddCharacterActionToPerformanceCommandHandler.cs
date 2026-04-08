@@ -39,12 +39,19 @@ namespace Storytime.Core.Handlers.Agents {
             .Where(ir => ir.ItemId == request.PerformanceId)
             .CountAsync(cancellationToken) + 1;
 
-        _context.ItemRelations.Add(new ItemRelation {
-          ItemId = request.PerformanceId,
-          RelationTypeId = (int)StRelationType.HasRole,
-          RelatedItemId = request.CharacterId,
-          Rank = nextRank
-        });
+        var existingRelation = await _context.ItemRelations
+          .AnyAsync(ir => ir.ItemId == request.PerformanceId
+            && ir.RelationTypeId == (int)StRelationType.HasRole
+            && ir.RelatedItemId == request.CharacterId, cancellationToken);
+
+        if (!existingRelation) {
+          _context.ItemRelations.Add(new ItemRelation {
+            ItemId = request.PerformanceId,
+            RelationTypeId = (int)StRelationType.HasRole,
+            RelatedItemId = request.CharacterId,
+            Rank = nextRank
+          });
+        }
 
         script.Entries.Add(new PerformanceEntry {
           Rank = nextRank,

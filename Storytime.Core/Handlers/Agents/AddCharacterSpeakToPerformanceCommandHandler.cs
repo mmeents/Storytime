@@ -1,10 +1,11 @@
 ﻿using KB.Core.Entities;
 using KB.Core.Models;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Storytime.Core.Constants;
 using Storytime.Core.Models;
 using System.Text.Json;
-using Microsoft.EntityFrameworkCore;
 
 
 namespace Storytime.Core.Handlers.Agents {
@@ -54,12 +55,19 @@ namespace Storytime.Core.Handlers.Agents {
             .Where(ir => ir.ItemId == request.PerformanceId)
             .CountAsync(cancellationToken) + 1;
 
-        _context.ItemRelations.Add(new ItemRelation {
-          ItemId = request.PerformanceId,
-          RelationTypeId = (int)StRelationType.HasRole,
-          RelatedItemId = request.CharacterId,
-          Rank = nextRank
-        });
+        var existingRelation = await _context.ItemRelations
+          .AnyAsync(ir => ir.ItemId == request.PerformanceId
+            && ir.RelationTypeId == (int)StRelationType.HasRole
+            && ir.RelatedItemId == request.CharacterId, cancellationToken);
+
+        if (!existingRelation) {
+          _context.ItemRelations.Add(new ItemRelation {
+            ItemId = request.PerformanceId,
+            RelationTypeId = (int)StRelationType.HasRole,
+            RelatedItemId = request.CharacterId,
+            Rank = nextRank
+          });
+        }
 
         script.Entries.Add(new PerformanceEntry {
           Rank = nextRank,
@@ -80,13 +88,9 @@ namespace Storytime.Core.Handlers.Agents {
 
       try {
 
-        var result = await _context.Items
-          .AsNoTracking()
-          .Where(i => i.Id == request.PerformanceId && i.IsActive)
-          .Include(i => i.ItemType)
-          .FirstOrDefaultAsync(cancellationToken);
+        var result = await _context.GetMinimalItemDtoById(request.PerformanceId, cancellationToken);
+        return result;
 
-        return result?.ToDto(false);
       } catch (Exception ex) {
         _logger.LogError(ex, "Failed to retrieve updated performance with id {PerformanceId} after adding character speak: {Message}", request.PerformanceId, ex.Message);
         throw new Exception($"Failed to retrieve updated performance with id {request.PerformanceId} after adding character speak: {ex.Message}");

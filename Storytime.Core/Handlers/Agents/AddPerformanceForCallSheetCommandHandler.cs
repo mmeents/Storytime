@@ -74,7 +74,7 @@ namespace Storytime.Core.Handlers.Agents {
 
       try {
         // Return the new Performance DTO directly — caller gets .Id immediately
-        return await _context.GetMinimalItemDtoById(request.CallSheetId, cancellationToken);
+        return await _context.GetItemDtoById(performance.Id, cancellationToken);
 
       } catch (Exception ex) {
         _logger.LogError(ex, "Failed to retrieve new performance with id {PerformanceId} after adding for CallSheetId {CallSheetId}: {Message}", performance.Id, request.CallSheetId, ex.Message);

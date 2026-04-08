@@ -30,24 +30,24 @@ namespace Storytime.Core.Constants {
 
     public const string CmdGetHelp = "help";
 
-    public const string CmdGetProjects = "get-projects";
-    public const string CmdGetById = "get-item-by-id";
-    public const string CmdGetSubgraph = "get-subgraph";
+    public const string CmdGetProjects = "getProjects";
+    public const string CmdGetById = "getItemById";
+    public const string CmdGetSubgraph = "getSubgraph";
     
-    public const string CmdAddStory = "add-story"; //-to-project"; //    
+    public const string CmdAddProjectStory = "addProjectStory"; 
 
-    public const string CmdAddScene = "add-scene"; //-to-story";
-    public const string CmdAddCharacter = "add-character"; //-to-story";
+    public const string CmdAddStoryScene = "addStoryScene"; 
+    public const string CmdAddStoryCharacter = "addStoryCharacter";
 
-    public const string CmdAddBeat = "add-beat"; //-to-scene";
+    public const string CmdAddSceneBeat = "addSceneBeat"; 
 
     // director
-    public const string CmdAddNarrationToCallSheet = "add-narration";//-to-call-sheet";
-    public const string CmdAddRoleToCallSheet = "add-role";//-to-call-sheet";
+    public const string CmdAddCallSheetNarration = "addCallSheetNarration";
+    public const string CmdAddCallSheetRole = "addCallSheetRole";
 
     // performance
-    public const string CmdAddCharacterAction = "add-action"; // add-character-action-to-performance";
-    public const string CmdAddCharacterSpeak = "add-dialogue"; // "add-character-speak-to-performance"
+    public const string CmdAddCharacterAction = "addPerformanceAction"; 
+    public const string CmdAddCharacterSpeak = "addPerformanceLine"; 
 
 
 /*  // disabled 
@@ -73,7 +73,7 @@ namespace Storytime.Core.Constants {
             StItemType.Location => "Location",
             StItemType.Rule => "Rule",
             StItemType.Tone => "Tone",
-            StItemType.CallSheet => "Call Sheet",
+            StItemType.CallSheet => "CallSheet",
             StItemType.Performance => "Performance",
             StItemType.Deliverable => "Deliverable",
             _ => throw new ArgumentOutOfRangeException(nameof(type), $"Not expected item type value: {type}")

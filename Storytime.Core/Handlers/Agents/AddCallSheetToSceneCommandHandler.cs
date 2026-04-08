@@ -3,6 +3,7 @@ using KB.Core.Models;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Storytime.Core.Constants;
 
 
 namespace Storytime.Core.Handlers.Agents {
@@ -42,15 +43,17 @@ namespace Storytime.Core.Handlers.Agents {
       try {
         _context.Items.Add(newRelatedItem);
         await _context.SaveChangesAsync(cancellationToken);
-        var nextRank = await _context.ItemRelations
-          .Where(ir => ir.ItemId == request.SceneId)
-          .CountAsync(cancellationToken) + 1;
+
+        var nextRank = await _context.GetItemsNextRankId(request.SceneId, cancellationToken);
+
         _context.ItemRelations.Add(new ItemRelation {
           ItemId = request.SceneId,
           RelationTypeId = (int)StRelationType.DirectedAs,
-          RelatedItemId = newRelatedItem.Id
+          RelatedItemId = newRelatedItem.Id,
+          Rank = nextRank
         });
         await _context.SaveChangesAsync(cancellationToken);
+
         await transaction.CommitAsync(cancellationToken);
       } catch {
         await transaction.RollbackAsync(cancellationToken);
@@ -60,17 +63,8 @@ namespace Storytime.Core.Handlers.Agents {
 
       try {
 
-        var result = await _context.Items
-          .AsNoTracking()
-          .Where(i => i.Id == newRelatedItem.Id && i.IsActive)
-          .Include(i => i.ItemType)
-          .Include(i => i.Relations).ThenInclude(r => r.RelatedItem)
-          .Include(i => i.Relations).ThenInclude(r => r.RelationType)
-          .Include(i => i.IncomingRelations).ThenInclude(r => r.Item)
-          .Include(i => i.IncomingRelations).ThenInclude(r => r.RelationType)
-          .FirstOrDefaultAsync(cancellationToken);
-
-        return result?.ToDto(true);
+        var result = await _context.GetItemDtoById(newRelatedItem.Id, cancellationToken);
+        return result;
 
       } catch (Exception ex) {
         _logger.LogError(ex, "Error occurred while retrieving CallSheet with id: {CallSheetId}", newRelatedItem.Id);

@@ -111,7 +111,7 @@ namespace Storytime.Core.Handlers.Queue {
 
       // ── CallSheet → Performance ───────────────────────────────────────────
       if (workingTypeId <= (int)TargetDepth && workingTypeId == (int)StItemType.CallSheet) {
-        await _mediator.Send(new GeneratePerformanceForCallSheetCommand(storyId, workingId), cancellationToken);
+        await _mediator.Send(new GeneratePerformanceForCallSheetCommand(workingId, storyId), cancellationToken);
         item = await _mediator.Send(new GetItemByIdQuery(workingId, true), cancellationToken);
         if (item == null) return false;
         var nextItem = item.Relations

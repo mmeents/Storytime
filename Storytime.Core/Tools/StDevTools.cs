@@ -12,7 +12,7 @@ namespace Storytime.Core.Tools {
   public class StDevTools {
     private static IStDevToolsHandler GetTools() => DiBridgeService.GetService<IStDevToolsHandler>();
     
-    [McpTool(Cx.CmdAddStory, "Adds a new story to a project, returns the project with the new story item.")]
+    [McpTool(Cx.CmdAddProjectStory, "Adds a new story to a project, returns the project with the new story item.")]
     public static async Task<string> AddStoryToProject(
       [Description("Id of the parent project item")]
       int projectId,
@@ -23,7 +23,7 @@ namespace Storytime.Core.Tools {
     ) => await GetTools().AddStoryToProject(projectId, name, description);
 
 
-    [McpTool(Cx.CmdAddScene, "Adds a new scene to a story, returns the story with the new scene item.")]
+    [McpTool(Cx.CmdAddStoryScene, "Adds a new scene to a story, returns the story with the new scene item.")]
     public static async Task<string> AddSceneToStory(
       [Description("Id of the parent story item")]
       int storyId,
@@ -34,7 +34,7 @@ namespace Storytime.Core.Tools {
     ) => await GetTools().AddSceneToStory(storyId, name, description);
 
 
-    [McpTool(Cx.CmdAddBeat, "Adds a new beat to a scene, returns the scene with the new beat item.")]
+    [McpTool(Cx.CmdAddSceneBeat, "Adds a new beat to a scene, returns the scene with the new beat item.")]
     public static async Task<string> AddBeatToScene(
       [Description("Id of the parent scene item")]
       int sceneId,
@@ -44,7 +44,7 @@ namespace Storytime.Core.Tools {
       string description = ""
     ) => await GetTools().AddBeatToScene(sceneId, name, description);
 
-    [McpTool(Cx.CmdAddCharacter, "Adds a new character to a story, returns the story with new character.")]
+    [McpTool(Cx.CmdAddStoryCharacter, "Adds a new character to a story, returns the story with new character.")]
     public static async Task<string> AddCharacterToStory(
       [Description("Id of the parent story or scene item")]
       int storyId,
@@ -55,7 +55,7 @@ namespace Storytime.Core.Tools {
     ) => await GetTools().AddCharacterToStory(storyId, name, description);
 
 
-    [McpTool(Cx.CmdAddNarrationToCallSheet, "Adds a new narration to a call sheet, returns the call sheet with the new narration item.")]
+    [McpTool(Cx.CmdAddCallSheetNarration, "Adds a new narration to a call sheet, returns the call sheet with the new narration item.")]
     public static async Task<string> AddNarrationToCallSheet(
       [Description("Id of the parent call sheet item")]
       int callSheetId,
@@ -65,7 +65,7 @@ namespace Storytime.Core.Tools {
       string description = ""
     ) => await GetTools().AddNarrationToCallSheet(callSheetId, name, description);
 
-    [McpTool(Cx.CmdAddRoleToCallSheet, "Adds a new role to a call sheet, returns the call sheet with the new role item.")]
+    [McpTool(Cx.CmdAddCallSheetRole, "Adds a new role to a call sheet, returns the call sheet with the new role item.")]
     public static async Task<string> AddRoleToCallSheet(
       [Description("Id of the parent call sheet item")]
       int callSheetId,
