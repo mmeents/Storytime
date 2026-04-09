@@ -54,8 +54,11 @@ namespace Storytime.Core.Clients {
     public LmStudioClient(ILogger<ILmStudioClient> logger, IFactorySettingsService factorySettingsService) {
       _logger = logger;
       _factorySettingsService = factorySettingsService;
-      _http = new HttpClient { BaseAddress = new Uri(_factorySettingsService.LMStudioUrl.TrimEnd('/') + "/"), Timeout = Timeout.InfiniteTimeSpan };      
-      ApiToken = Cx.LMStudioApiKey;
+      _http = new HttpClient { 
+        BaseAddress = new Uri(_factorySettingsService.LMStudioUrl.TrimEnd('/') + "/"), 
+        Timeout = Timeout.InfiniteTimeSpan 
+      };      
+      ApiToken = _factorySettingsService.LMStudioApiKey;
     }    
 
     // ─────────────────────────────────────────────────────────
@@ -70,7 +73,7 @@ namespace Storytime.Core.Clients {
              ?? throw new InvalidOperationException("Null response from /api/v1/models");
     }
 
-    /// <summary>Convenience: returns only LLM-type models.</summary>
+    
     public async Task<List<LmModel>> GetLlmModelsAsync(CancellationToken ct = default) {
       var result = await GetModelsAsync(ct);
       return result.Models.Where(m => m.Type == "llm").ToList();
@@ -84,7 +87,9 @@ namespace Storytime.Core.Clients {
     public async Task<ChatResponse> ChatAsync(ChatRequest request, CancellationToken ct = default) {
       try {
         var httpResponse = await _http.PostAsJsonAsync("api/v1/chat", request, JsonOptions, ct);
+
         httpResponse.EnsureSuccessStatusCode();
+
         return await httpResponse.Content.ReadFromJsonAsync<ChatResponse>(JsonOptions, ct)
           ?? throw new InvalidOperationException("Null response from /api/v1/chat");
 

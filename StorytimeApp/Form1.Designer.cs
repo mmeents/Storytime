@@ -613,6 +613,7 @@
       btnCancelRelation.TabIndex = 22;
       btnCancelRelation.Text = "Cancel";
       btnCancelRelation.UseVisualStyleBackColor = true;
+      btnCancelRelation.Click += btnCancelRelation_Click;
       // 
       // btnUpdateRelation
       // 
@@ -622,6 +623,7 @@
       btnUpdateRelation.TabIndex = 21;
       btnUpdateRelation.Text = "Update";
       btnUpdateRelation.UseVisualStyleBackColor = true;
+      btnUpdateRelation.Click += btnUpdateRelation_Click;
       // 
       // label7
       // 
@@ -1124,6 +1126,7 @@
       fclbDescription.DisabledColor = Color.FromArgb(100, 180, 180, 180);
       fclbDescription.Dock = DockStyle.Bottom;
       fclbDescription.FindForm = null;
+      fclbDescription.Font = new Font("Courier New", 9.75F);
       fclbDescription.GoToForm = null;
       fclbDescription.Hotkeys = resources.GetString("fclbDescription.Hotkeys");
       fclbDescription.IsReplaceMode = false;

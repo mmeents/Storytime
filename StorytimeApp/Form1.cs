@@ -32,14 +32,14 @@ namespace StorytimeApp {
   public partial class Form1 : Form {
     private readonly IServiceScopeFactory _scopeFactory;
     private ILogger<Form1> _logger;
-    private readonly IAppDataModuleService _appDataModuleService;   
+    private readonly IAppDataModuleService _appDataModuleService;
     private Dictionary<int, ItemTypeDto> _itemTypeCache = new Dictionary<int, ItemTypeDto>();
     private Dictionary<int, ItemDto> _itemCache = new Dictionary<int, ItemDto>();
 
     public Form1(IServiceScopeFactory scopeFactory) {
       _scopeFactory = scopeFactory;
       using var scope = _scopeFactory.CreateScope();
-      _logger = scope.ServiceProvider.GetRequiredService<ILogger<Form1>>();      
+      _logger = scope.ServiceProvider.GetRequiredService<ILogger<Form1>>();
       _appDataModuleService = scope.ServiceProvider.GetRequiredService<IAppDataModuleService>();
       InitializeComponent();
       _logger.LogInformation("Form1 initialized.");
@@ -96,7 +96,7 @@ namespace StorytimeApp {
         var items = await _appDataModuleService.GetAllProjectItems();
         foreach (var project in items) {
           _itemCache[project.Id] = project;
-          ItemNode projectNode = project.ToItemNode();          
+          ItemNode projectNode = project.ToItemNode();
           if (project.Relations.Count() > 0) {
             foreach (var rel in project.Relations) {
               if (rel.RelatedItemId.HasValue) {
@@ -122,7 +122,7 @@ namespace StorytimeApp {
 
                 }
 
-                
+
 
               }
             }
@@ -132,16 +132,16 @@ namespace StorytimeApp {
 
         }
         tvKb.EndUpdate();
-        
+
         if (expandedNodeIds.Count > 0 && selectedItemId.HasValue) {
           // expandedNodeIds was built root-first so reverse gives you top-down
           foreach (var id in expandedNodeIds.AsEnumerable().Reverse()) {
-            var nodelist = tvKb.Nodes.Find(id.ToString(), true);            
-            if (nodelist.Length > 0) { 
-               var node = nodelist[0];
-               node.Expand();              
-            }            
-          }          
+            var nodelist = tvKb.Nodes.Find(id.ToString(), true);
+            if (nodelist.Length > 0) {
+              var node = nodelist[0];
+              node.Expand();
+            }
+          }
           var target = tvKb.Nodes.Find(selectedItemId.Value.ToString(), true);
           if (target.Length > 0) {
             tvKb.SelectedNode = target[0];
@@ -174,7 +174,7 @@ namespace StorytimeApp {
             }
           }
           return newNode;
-        }        
+        }
       } else {
         if (relation == null) { return null; }
         var aItem = await _appDataModuleService.GetItemById(relation.RelatedItemId);
@@ -217,7 +217,7 @@ namespace StorytimeApp {
 
           }
         }
-        node.Expand(); 
+        node.Expand();
       }
     }
 
@@ -832,7 +832,7 @@ namespace StorytimeApp {
       } catch (Exception ex) {
         _logger.LogError(ex, "Error retrieving LM Studio models.");
         MessageBox.Show("An error occurred while retrieving LM Studio models. Please check the logs for details.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-      }      
+      }
     }
 
     private void lbLaunchCmd_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e) {
@@ -1281,7 +1281,7 @@ namespace StorytimeApp {
             btnStartStop.Enabled = false;
             btnRunNextScheduled.Enabled = false;
             _isStopping = true;
-          } else { 
+          } else {
             lbWorkingStatus.Text = "Status: Pipeline Idle";
             btnStartStop.Text = "Start";
             btnRunNextScheduled.Enabled = true;
@@ -1316,7 +1316,7 @@ namespace StorytimeApp {
           runTimer.Enabled = true;
           btnRunNextScheduled.Enabled = false;
         }
-        if (_isStopping) {           
+        if (_isStopping) {
           EngineRunning = false;
         }
       }
@@ -1381,7 +1381,7 @@ namespace StorytimeApp {
         }
         var item = await _mediator.Send(new GetItemByIdQuery(itemId, true));
         if (item == null) {
-          DoErrorStop("Failed to find item for next queue item.");          
+          DoErrorStop("Failed to find item for next queue item.");
           return;
         }
         DoPublishProgress("Starting (" + Cx.AsString((StItemType)item.ItemTypeId) + "):" + nextQueueItemString + " destination being " + Cx.AsString(TargetDepth));
@@ -1477,7 +1477,7 @@ namespace StorytimeApp {
           sceneId = workingId;
           DoUpdateWorkingMessage($"Running Beats for {item.Name}");
           if (!hasBeats) {
-            await _mediator.Send(new GenerateBeatsForSceneCommand(storyId, sceneId));            
+            await _mediator.Send(new GenerateBeatsForSceneCommand(storyId, sceneId));
           }
           // advance regardless — menu entry is always on scene, beats live under it
           workingTypeId = (int)StItemType.Beat;
@@ -1504,7 +1504,7 @@ namespace StorytimeApp {
           item = await _mediator.Send(new GetItemByIdQuery(workingId, true));
           if (item == null) {
             DoErrorStop("Failed to find callsheet direct lookup after create.");
-            return;  
+            return;
           }
           DoPublishProgress("Added (" + Cx.AsString((StItemType)item.ItemTypeId) + "):" + nextQueueItemString + " destination being " + Cx.AsString(TargetDepth));
           workingTypeId = item.ItemTypeId; // CallSheet
@@ -1637,7 +1637,5 @@ namespace StorytimeApp {
     }
     #endregion
 
-
-    
   }
 }
