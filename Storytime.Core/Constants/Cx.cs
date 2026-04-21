@@ -16,7 +16,7 @@ namespace Storytime.Core.Constants {
         
     public const string LMStudioUrl = "http://10.0.0.118:8669";
     public const string LMStudioApiKey = "sk-lm-njtLGuVe:Vcbn9IXvEghho3wt9TCx";
-    public const string LMStudioStorytimeMcpToolName = "mcp/storytime-mcp";
+    public const string LMStudioStorytimeMcpToolName = "mcp/storytimemcp";
     public const string LMStudioDefaultModel = "nvidia/nemotron-3-nano-4b";
     public const string ClaudeDefaultModel = "sonnet";
     public const int DefaultLmStudioContextLength = 8000;
@@ -49,11 +49,11 @@ namespace Storytime.Core.Constants {
     public const string CmdAddCharacterAction = "addPerformanceAction"; 
     public const string CmdAddCharacterSpeak = "addPerformanceLine"; 
 
+    public const string CmdUpdateItem = "updateItem";
 
 /*  // disabled 
     public const string CmdAddRelationItem = "create-related-item";
-    public const string CmdAddItem = "create-item";
-    public const string CmdUpdateItem = "update-item";
+    public const string CmdAddItem = "create-item"; 
     public const string CmdGetRelationById = "get-relation-by-id";
     public const string CmdAddRelataion = "create-relation";
     public const string CmdUpdateRelation = "update-relation";  */

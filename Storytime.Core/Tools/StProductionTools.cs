@@ -17,7 +17,7 @@ namespace Storytime.Core.Tools {
       [Description("Name of the character")]
       string characterName,
       [Description("Describe the action performed by the character")]
-      string action = ""
+      string action 
     ) => await GetTools().AddCharacterActionToPerformance(performanceId, characterId, characterName, action);
 
     [McpTool(Cx.CmdAddCharacterSpeak, "Adds a new line of dialogue for a character in a performance.")]
@@ -29,7 +29,7 @@ namespace Storytime.Core.Tools {
       [Description("Name of the character")]
       string characterName,
       [Description("Line spoken by the character")]
-      string line = ""
+      string line 
     ) => await GetTools().AddCharacterSpeakToPerformance(performanceId, characterId, characterName, line);
 
   }

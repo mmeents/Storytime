@@ -18,6 +18,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		TheCommentThatShouldNotBeThere.md = TheCommentThatShouldNotBeThere.md
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Storytime.Core.Test", "Storytime.Core.Test\Storytime.Core.Test.csproj", "{0DC16AB8-7F93-4AB0-8C21-0A6E096CDAFB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -40,6 +42,10 @@ Global
 		{228E6EA8-951C-408D-8C89-460E3B69EAFB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{228E6EA8-951C-408D-8C89-460E3B69EAFB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{228E6EA8-951C-408D-8C89-460E3B69EAFB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0DC16AB8-7F93-4AB0-8C21-0A6E096CDAFB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0DC16AB8-7F93-4AB0-8C21-0A6E096CDAFB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0DC16AB8-7F93-4AB0-8C21-0A6E096CDAFB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0DC16AB8-7F93-4AB0-8C21-0A6E096CDAFB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

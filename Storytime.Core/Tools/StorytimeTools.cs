@@ -53,7 +53,7 @@ namespace Storytime.Core.Tools {
       [Description("The description")]
       string description       
     ) => await GetTools().CreateItem(name, itemTypeId, description, "{}");
-
+    */
 
     [McpTool(Cx.CmdUpdateItem, "update existing item")]
     public static async Task<string> UpdateItem(
@@ -67,6 +67,7 @@ namespace Storytime.Core.Tools {
       string description = "" 
     ) => await GetTools().UpdateItem(id, name, itemTypeId, description, "{}");
 
+    /*
     [McpTool(Cx.CmdGetRelationById, "Gets a relation by id")]
     public static async Task<string> GetRelationById(int id
     ) => await GetTools().GetRelationById(id);

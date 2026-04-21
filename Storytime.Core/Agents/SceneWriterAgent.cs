@@ -52,7 +52,7 @@ namespace Storytime.Core.Agents {
             "Your job is to Create 3–6 new Beats that tell this scene moment-by-moment. " + Environment.NewLine +
             "Each beat should have a clear purpose (Setup / Choice / Escalation / Climax / Resolution)." + Environment.NewLine +
             $"Use the {Cx.CmdAddSceneBeat} mcp tool to persist each beat." + Environment.NewLine +
-            "Important: no curly brackets or JSON characters in tool call parameters. Thanks.";
+            "Important, within the tool call parameters, no curly brackets or JSON characters. Thanks.";
 
         _baseAgent.UserPrompt =
             $"Scene (Id:{newSceneId}): {scene.Root.Name}\n" +

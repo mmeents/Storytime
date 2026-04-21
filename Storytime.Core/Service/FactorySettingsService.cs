@@ -1,4 +1,5 @@
-﻿using Storytime.Core.Agents;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Storytime.Core.Agents;
 using Storytime.Core.Constants;
 using Storytime.Core.Entities;
 
@@ -17,11 +18,13 @@ namespace Storytime.Core.Service {
 
 
   public class FactorySettingsService : IFactorySettingsService {
-    private StorytimeDbContext _context;
+    private readonly IServiceScopeFactory _serviceScopeFactory;
+    
     public FactorySettingsService(
-      StorytimeDbContext context
+      IServiceScopeFactory serviceScopeFactory
+    
     ) {
-      _context = context;
+      _serviceScopeFactory = serviceScopeFactory;      
       CurrentMode = Enum.TryParse(getValue(nameof(CurrentMode), Cx.DefaultAgentRunnerMode.ToString()), out AgentRunnerMode mode) ? mode : Cx.DefaultAgentRunnerMode;
       LMStudioUrl = getValue(nameof(LMStudioUrl), Cx.LMStudioUrl);
       LMStudioApiKey = getValue(nameof(LMStudioApiKey), Cx.LMStudioApiKey);
@@ -106,23 +109,29 @@ namespace Storytime.Core.Service {
 
 
     public string getValue(string key, string defaultValue) {
-      var aSetting = _context.GetAppSetting(key);
-      if (aSetting == null) {        
-        return defaultValue;
-      } else {
-        return aSetting?.Value ?? defaultValue;
+      using (var scope = _serviceScopeFactory.CreateScope()) {
+        var context = scope.ServiceProvider.GetRequiredService<StorytimeDbContext>();
+        var aSetting = context.GetAppSetting(key);
+        if (aSetting == null) {        
+          return defaultValue;
+        } else {
+          return aSetting?.Value ?? defaultValue;
+        }
       }
     }
 
     public void setValue(string key, string value) {
       if (String.IsNullOrEmpty(key)) throw new ArgumentException("Key cannot be null or empty", nameof(key));
-      var aSetting = _context.GetAppSetting(key);
-      if (aSetting == null) {
-        var bSetting = new AppSetting { Key = key, Value = value, ValueInt = 0 };
-        var _ = _context.SetAppSetting(bSetting);
-      } else {
-        aSetting.Value = value;
-        var _ = _context.SetAppSetting(aSetting);
+      using (var scope = _serviceScopeFactory.CreateScope()) {
+        var context = scope.ServiceProvider.GetRequiredService<StorytimeDbContext>();
+        var aSetting = context.GetAppSetting(key);
+        if (aSetting == null) {
+          var bSetting = new AppSetting { Key = key, Value = value, ValueInt = 0 };
+          var _ = context.SetAppSetting(bSetting);
+        } else {
+          aSetting.Value = value;
+          var _ = context.SetAppSetting(aSetting); 
+        }
       }
     }   
 

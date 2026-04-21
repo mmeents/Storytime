@@ -54,7 +54,7 @@ namespace Storytime.Core.Agents {
           $"Project Name: {projectName}" + Environment.NewLine +
           $"Project Description: {projectDescription}" + Environment.NewLine + 
           $"Existing Stories (do not duplicate thse): {existingStoryIdeasText}"+Environment.NewLine +        
-          $"And finally, Using the {Cx.LMStudioStorytimeMcpToolName} {Cx.CmdAddProjectStory} tool, thanks.";
+          $"And finally, Using the {Cx.LMStudioStorytimeMcpToolName} {Cx.CmdAddProjectStory} tool, be sure to pass all 3 parameters: projectId, name, details; they are required. you got this...";
 
       
         var response = await _baseAgent.InvokeAgentAsync(cancellationToken);

@@ -18,7 +18,9 @@ namespace Storytime.Core.Handlers.Items {
     string ItemData    
   ) : IRequest<ItemDto?>;
 
-  public class CreateRelatedItemCommandHandler(StorytimeDbContext context) : IRequestHandler<CreateRelatedItemCommand, ItemDto?> {
+  public class CreateRelatedItemCommandHandler(
+    StorytimeDbContext context
+  ) : IRequestHandler<CreateRelatedItemCommand, ItemDto?> {
     private readonly StorytimeDbContext _context = context;
     public async Task<ItemDto?> Handle(CreateRelatedItemCommand request, CancellationToken cancellationToken) {
 

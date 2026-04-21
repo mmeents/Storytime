@@ -895,9 +895,17 @@ namespace StorytimeApp {
       lbCurrentModel.Text = $"Current: Claude Code; Model: {_appDataModuleService.CurrentClaudeModel};";
     }
 
+    private void edLMStudioUrl_TextChanged(object sender, EventArgs e) {
+      _appDataModuleService.LMStudioUrl = edLMStudioUrl.Text;
+    }
+
+    private void edLMStudioApiKey_TextChanged(object sender, EventArgs e) {
+      _appDataModuleService.LMStudioApiKey = edLMStudioApiKey.Text;
+    }
     private void lbLMStudioModels_DoubleClick(object sender, EventArgs e) {
       if (lbLMStudioModels.SelectedItem != null) {
         _appDataModuleService.CurrentLMStudioModel = lbLMStudioModels.SelectedItem.ToString() ?? Cx.LMStudioDefaultModel;
+        edLmStudioModel.Text = _appDataModuleService.CurrentLMStudioModel;
         lbCurrentModel.Text = $"Current: LM Studio Model: {_appDataModuleService.CurrentLMStudioModel} ";
       }
     }

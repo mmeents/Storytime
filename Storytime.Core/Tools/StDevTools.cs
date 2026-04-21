@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using MCPSharp;
 using Storytime.Core.Service;
 using Storytime.Core.Constants;
@@ -18,54 +13,54 @@ namespace Storytime.Core.Tools {
       int projectId,
       [Description("Name of the new story")]
       string name,
-      [Description("Description of the new story")]
-      string description = ""
-    ) => await GetTools().AddStoryToProject(projectId, name, description);
+      [Description("Details of the new story")]
+      string details
+    ) => await GetTools().AddStoryToProject(projectId, name, details);
 
 
-    [McpTool(Cx.CmdAddStoryScene, "Adds a new scene to a story, returns the story with the new scene item.")]
+    [McpTool(Cx.CmdAddStoryScene, "Adds a new scene to a story, requires: storyId, name, details parameters.")]
     public static async Task<string> AddSceneToStory(
       [Description("Id of the parent story item")]
       int storyId,
       [Description("Name of the new scene")]
       string name,
-      [Description("Description of the new scene")]
-      string description = ""
-    ) => await GetTools().AddSceneToStory(storyId, name, description);
+      [Description("Details of the new scene")]
+      string details
+    ) => await GetTools().AddSceneToStory(storyId, name, details);
 
 
-    [McpTool(Cx.CmdAddSceneBeat, "Adds a new beat to a scene, returns the scene with the new beat item.")]
+    [McpTool(Cx.CmdAddSceneBeat, "Adds a new beat to a scene, requires: sceneId, name, details parameters.")]
     public static async Task<string> AddBeatToScene(
       [Description("Id of the parent scene item")]
       int sceneId,
       [Description("Name of the new beat")]
       string name,
-      [Description("Description of the new beat")]
-      string description = ""
-    ) => await GetTools().AddBeatToScene(sceneId, name, description);
+      [Description("Details of the new beat")]
+      string details
+    ) => await GetTools().AddBeatToScene(sceneId, name, details);
 
-    [McpTool(Cx.CmdAddStoryCharacter, "Adds a new character to a story, returns the story with new character.")]
+    [McpTool(Cx.CmdAddStoryCharacter, "Adds a new character to a story, requires: storyId, name, details parameters.")]
     public static async Task<string> AddCharacterToStory(
       [Description("Id of the parent story or scene item")]
       int storyId,
       [Description("Name of the new character")]
       string name,
-      [Description("Description of the new character")]
-      string description = ""
-    ) => await GetTools().AddCharacterToStory(storyId, name, description);
+      [Description("Details of the new character")]
+      string details
+    ) => await GetTools().AddCharacterToStory(storyId, name, details);
 
 
-    [McpTool(Cx.CmdAddCallSheetNarration, "Adds a new narration to a call sheet, returns the call sheet with the new narration item.")]
+    [McpTool(Cx.CmdAddCallSheetNarration, "Adds a new narration to a call sheet, requires: callSheetId, name, details parameters.")]
     public static async Task<string> AddNarrationToCallSheet(
       [Description("Id of the parent call sheet item")]
       int callSheetId,
       [Description("Name of the new narration")]
       string name,
-      [Description("Description of the new narration")]
-      string description = ""
-    ) => await GetTools().AddNarrationToCallSheet(callSheetId, name, description);
+      [Description("Details of the new narration")]
+      string details
+    ) => await GetTools().AddNarrationToCallSheet(callSheetId, name, details);
 
-    [McpTool(Cx.CmdAddCallSheetRole, "Adds a new role to a call sheet, returns the call sheet with the new role item.")]
+    [McpTool(Cx.CmdAddCallSheetRole, "Adds a new role to a call sheet, requires: callSheetId, characterId, name, details parameters.")]
     public static async Task<string> AddRoleToCallSheet(
       [Description("Id of the parent call sheet item")]
       int callSheetId,
@@ -73,9 +68,9 @@ namespace Storytime.Core.Tools {
       int characterId,
       [Description("Name of the new role")]
       string name,
-      [Description("Description of the new role")]
-      string description = ""
-    ) => await GetTools().AddRoleToCallSheet(callSheetId, characterId, name, description);
+      [Description("Details of the new role")]
+      string details
+    ) => await GetTools().AddRoleToCallSheet(callSheetId, characterId, name, details);
 
 
   }

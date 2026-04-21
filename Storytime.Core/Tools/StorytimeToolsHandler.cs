@@ -16,9 +16,11 @@ namespace Storytime.Core.Tools {
     Task<string> GetItemById(int id);
     Task<string> GetSubgraph(int itemId, int depth = 3);
 
+    Task<string> UpdateItem(int id, string name, int itemTypeId, string description, string data);
+
     /*Task<string> CreateRelatedItem(int parentItemId, int relationTypeId, int itemTypeId, string name, string description, string data);
     Task<string> CreateItem(string name, int itemTypeId, string description, string data);
-    Task<string> UpdateItem(int id, string name, int itemTypeId, string description, string data);
+    
     Task<string> GetRelationById(int id);
     Task<string> CreateRelation(int fromItemId, int toItemId, int relationTypeId);
     Task<string> UpdateRelation(int relationId, int fromItemId, int toItemId, int relationTypeId, int rank);
@@ -38,23 +40,24 @@ namespace Storytime.Core.Tools {
     // Storytime tools are spread across 3 main handlers.
     public string GetHelpText() {
       var helpText = new Dictionary<string, string> {
-        { "Notes:", "dashes get replaced so no neither in commands. "},
+        { "Notes:", "dashes get replaced so no neither in commands. All parameters are required."},
         { Cx.CmdGetHelp, "was used to get this text" },
 
         { Cx.CmdGetProjects, "returns list of projects, root items only" },
 
         { Cx.CmdGetById, "item lookup, items are the nouns. all ids are type int" },
         { Cx.CmdGetSubgraph, "root and related items out to depth levels of items deep.  Parameters: int itemId, int depth" },
+        { Cx.CmdUpdateItem, "Updates an item. Parameters: int id, string name, int itemTypeId, string details, string data" },
         
-        { Cx.CmdAddProjectStory, "Adds a story to a project. Parameters: int projectId, string name, string description." },
+        { Cx.CmdAddProjectStory, "Adds a story to a project. Parameters: int projectId, string name, string details." },
 
-        { Cx.CmdAddStoryScene, "Adds a scene to a story. Parameters: int storyId, string name, string description." },
+        { Cx.CmdAddStoryScene, "Adds a scene to a story. Parameters: int storyId, string name, string details." },
 
-        { Cx.CmdAddSceneBeat, "Adds a beat to a scene. Parameters: int sceneId, string name, string description." },
-        { Cx.CmdAddStoryCharacter, "Adds a character to a story. Parameters: int storyId, string name, string description." },
+        { Cx.CmdAddSceneBeat, "Adds a beat to a scene. Parameters: int sceneId, string name, string details." },
+        { Cx.CmdAddStoryCharacter, "Adds a character to a story. Parameters: int storyId, string name, string details." },
                 
-        { Cx.CmdAddCallSheetNarration, "Adds a narration beat to a call sheet. Parameters: int callSheetId, string name, string description" },
-        { Cx.CmdAddCallSheetRole, "Adds a character role to a call sheet. Parameters: int callSheetId, int characterId, string name, string description" },
+        { Cx.CmdAddCallSheetNarration, "Adds a narration beat to a call sheet. Parameters: int callSheetId, string name, string details" },
+        { Cx.CmdAddCallSheetRole, "Adds a character role to a call sheet. Parameters: int callSheetId, int characterId, string name, string details" },
         
         { Cx.CmdAddCharacterAction, "Adds an action to a performance for a character. Parameters: int performanceId, int characterId, string characterName, string action" },
         { Cx.CmdAddCharacterSpeak, "Adds a speak moment to a performance for a character. Parameters: int performanceId, int characterId, string characterName, string line" },
@@ -108,6 +111,22 @@ namespace Storytime.Core.Tools {
       }
     }
 
+    public async Task<string> UpdateItem(int id, string name, int itemTypeId, string description, string data) {
+      try {
+        using var scope = _serviceScopeFactory.CreateScope();
+        var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+        var command = new UpdateItemCommand(id, itemTypeId, name, description, data, true);
+        var result = await mediator.Send(command);
+        var opResult = McpOpResult.CreateSuccess("update-item", "Successfully updated", result);
+        return JsonSerializer.Serialize(opResult);
+      } catch (Exception ex) {
+        _logger.LogError(ex, "Error updating item");
+        var opResult = McpOpResult.CreateFailure("update-item", "Failed to update item", ex);
+        return JsonSerializer.Serialize(opResult);
+      }
+    }
+
+
     /*
     public async Task<string> CreateRelatedItem(int parentItemId, int relationTypeId, int itemTypeId, string name, string description, string data) {
       try {
@@ -139,20 +158,6 @@ namespace Storytime.Core.Tools {
       }
     }
 
-    public async Task<string> UpdateItem(int id, string name, int itemTypeId, string description, string data) {
-      try {
-        using var scope = _serviceScopeFactory.CreateScope();
-        var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
-        var command = new UpdateItemCommand(id, itemTypeId, name, description, data, true);
-        var result = await mediator.Send(command);
-        var opResult = McpOpResult.CreateSuccess("update-item", "Successfully updated", result);
-        return JsonSerializer.Serialize(opResult);
-      } catch (Exception ex) {
-        _logger.LogError(ex, "Error updating item");
-        var opResult = McpOpResult.CreateFailure("update-item", "Failed to update item", ex);
-        return JsonSerializer.Serialize(opResult);
-      }
-    }
 
     public async Task<string> GetRelationById(int id) {
       try {

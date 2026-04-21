@@ -414,6 +414,7 @@
       edLMStudioApiKey.Size = new Size(368, 23);
       edLMStudioApiKey.TabIndex = 16;
       edLMStudioApiKey.Text = "somekey";
+      edLMStudioApiKey.TextChanged += edLMStudioApiKey_TextChanged;
       // 
       // label10
       // 
@@ -440,6 +441,7 @@
       edLMStudioUrl.Size = new Size(368, 23);
       edLMStudioUrl.TabIndex = 13;
       edLMStudioUrl.Text = "http";
+      edLMStudioUrl.TextChanged += edLMStudioUrl_TextChanged;
       // 
       // lbLaunchCmd
       // 
